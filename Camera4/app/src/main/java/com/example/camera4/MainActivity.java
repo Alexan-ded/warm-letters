@@ -13,7 +13,10 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.PackageManagerCompat;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Camera;
 import android.graphics.Matrix;
 import android.media.Image;
@@ -39,6 +42,26 @@ public class MainActivity extends AppCompatActivity {
 
     TextureView textureView;
 
+    static final int REQUEST_IMAGE_CAPTURE = 1;
+
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        try {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            String msg = "Good good";
+            Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
+        } catch (ActivityNotFoundException e) {
+            // display error state to the user
+        }
+    }
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE_CAPTURE) {
+            Bitmap thumbnail = (Bitmap) data.getExtras().get("data"); // this is the picture taken
+
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,7 +72,12 @@ public class MainActivity extends AppCompatActivity {
         textureView = (TextureView) findViewById(R.id.view_finder);
 
         if (allPermissionsGranted()) {
-            startCamera();
+            findViewById(R.id.imageButton).setOnClickListener(new View.OnClickListener() {// мб тут косяк
+                @Override
+                public void onClick(View view) {
+                    dispatchTakePictureIntent();
+                }
+            });
         } else {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
         }
@@ -84,28 +112,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.imageButton).setOnClickListener(new View.OnClickListener() {// мб тут косяк
             @Override
             public void onClick(View view) {
-                ;
-                File file = new File(MediaStore.Images.Media.DISPLAY_NAME);
 
 
-                // ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(file1).build();
-                imgCap.takePicture(file, new ImageCapture.OnImageSavedListener() {
-                    @Override
-                    public void onImageSaved(@NonNull File file) {
-                        String msg = "Pic captured at " + file.getAbsolutePath();
-                        Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    public void onError(@NonNull ImageCapture.UseCaseError useCaseError, @NonNull String message, @Nullable Throwable cause) {
-                        String msg = "Pic captured failed: " + message;
-                        Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
-
-                        if (cause != null) {
-                            cause.printStackTrace();
-                        }
-                    }
-                });
             }
         });
         CameraX.bindToLifecycle(this, preview, imgCap);
