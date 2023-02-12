@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Camera4</string>
+    <string name="camera_button">Turn on the camera</string>
 </resources>
