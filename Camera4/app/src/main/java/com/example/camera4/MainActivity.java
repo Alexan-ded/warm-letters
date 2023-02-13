@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     protected int REQUEST_CODE_PERMISSIONS = 101;
 
-    // TODO external storage is unnecessary?
+    // TODO external storage is permission is not needed?
     protected String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE"};
 
     @Override
@@ -139,27 +139,31 @@ public class MainActivity extends AppCompatActivity {
                 outputStream.flush();
                 outputStream.close();
 
+                // TODO error, but image is sent
                 int responseCode = connection.getResponseCode();
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    InputStream inputStream = connection.getInputStream();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                    StringBuilder response = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        response.append(line);
-                    }
-                    reader.close();
-                    inputStream.close();
-                    connection.disconnect();
-                    Log.d("Response", response.toString());
-                } else {
-                    Log.e("Response Error", "Failed with response code: " + responseCode);
-                }
+//                if (responseCode == HttpURLConnection.HTTP_OK) {
+//                    InputStream inputStream = connection.getInputStream();
+//                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+//                    StringBuilder response = new StringBuilder();
+//                    String line;
+//                    while ((line = reader.readLine()) != null) {
+//                        response.append(line);
+//                    }
+//                    reader.close();
+//                    inputStream.close();
+////                    connection.disconnect();
+//                    Log.d("Response", response.toString());
+//                } else {
+//                    Log.e("Response Error", "Failed with response code: " + responseCode);
+//                }
             } catch (IOException e) {
                 Log.e("Error", e.getMessage(), e);
+
             }
         }).start();
     }
+
+    // TODO GET picture from the server
 
     protected boolean allPermissionsGranted() {
         for (String permission : REQUIRED_PERMISSIONS) {
