@@ -42,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
     protected ImageView picture_received;
     ActivityResultLauncher<Intent> camera_result_launcher;
 
+    // put your server IP and Port here
+    protected final String SERVER_URL = "http://<IP>:<Port>/";
     protected final String APP_TAG = "temp";
     protected String photo_file_name = "photo.jpg";
     File photo_file;
@@ -125,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 // put your server IP and Port here
-                URL url = new URL("http://<IP>:<Port>/");
+                URL url = new URL(SERVER_URL);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setDoOutput(true);
