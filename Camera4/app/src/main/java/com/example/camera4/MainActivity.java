@@ -8,17 +8,10 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 
-import androidx.exifinterface.media.ExifInterface;
-
-import android.graphics.Matrix;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -27,19 +20,10 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.lang.ref.WeakReference;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // TODO Activity -> FragmentActivity?
@@ -53,10 +37,10 @@ public class MainActivity extends AppCompatActivity {
     // put your server IP and Port here
 //    protected final String SERVER_URL = "http://<IP>:<Port>/";
     protected final String APP_TAG = "temp";
-    protected String photo_file_name = "photo.jpg";
-    protected File photo_file;
+    protected String imageFileName = "photo.jpg";
+    protected File ImageFile;
 
-    protected AtomicBoolean is_processed;
+    protected AtomicBoolean is_processed = new AtomicBoolean(true);
 
     protected int REQUEST_CODE_PERMISSIONS = 101;
 
@@ -79,12 +63,17 @@ public class MainActivity extends AppCompatActivity {
         camera_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (!is_processed.get()) {
+                    Toast.makeText(MainActivity.this, "зачилься другалёк", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                is_processed.set(false);
                 Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 try {
                     // Create a File reference for future access
-                    photo_file = getPhotoFileUri(photo_file_name);
+                    ImageFile = getPhotoFileUri(imageFileName);
 
-                    Uri fileProvider = FileProvider.getUriForFile(MainActivity.this, BuildConfig.APPLICATION_ID + ".provider", photo_file);
+                    Uri fileProvider = FileProvider.getUriForFile(MainActivity.this, BuildConfig.APPLICATION_ID + ".provider", ImageFile);
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileProvider);
 
                     camera_result_launcher.launch(takePictureIntent);
@@ -103,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
 //                        Bitmap photo = BitmapFactory.decodeFile(tmp);
 //                        int image_orientation = getCameraPhotoOrientation(tmp);
 
-                        new ImageProcess(MainActivity.this, photo_file.getAbsolutePath(), is_processed).processImage();
+                        new ImageProcess(MainActivity.this, ImageFile.getAbsolutePath(), is_processed).processImage();
 
 
                     } else {

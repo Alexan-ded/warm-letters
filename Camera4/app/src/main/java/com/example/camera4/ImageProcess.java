@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Vector;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,7 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ImageProcess {
 
     // put your server IP and Port here
-    protected final String SERVER_URL = "http://<IP>:<Port>/";
+//    protected final String SERVER_URL = "http://<IP>:<Port>/";
+
 
     protected final Executor executor;
     protected final Context context;
@@ -40,22 +42,17 @@ public class ImageProcess {
     }
 
     public void processImage() {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                Bitmap rotatedBitmap = rotateBitmap(filename);
+        executor.execute(() -> {
+            Bitmap rotatedBitmap = rotateBitmap(filename);
+
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+            byte[] image_bytes = byteArrayOutputStream.toByteArray();
 
 
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-                byte[] image_bytes = byteArrayOutputStream.toByteArray();
+            // Send the image to the server
+            sendImageToServer(image_bytes);
 
-
-                // Send the image to the server
-                sendImageToServer(image_bytes);
-
-
-            }
         });
     }
 
@@ -96,23 +93,24 @@ public class ImageProcess {
             }
 
 
+            Vector<Long> time_consuming_vector = new Vector<Long>();
+            for (long i = 0; i < 10_000_000; ++i) {
+                time_consuming_vector.add(i);
+            }
+
             if (Looper.myLooper() == Looper.getMainLooper()) {
                 // We're on the main thread, no need to create a new looper
-                Toast.makeText(context, "arait bra?", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Image processed successfully!", Toast.LENGTH_SHORT).show();
             } else {
                 // We're on a background thread, need to create a new looper
                 HandlerThread handlerThread = new HandlerThread("ImageProcessHandlerThread");
                 handlerThread.start();
                 Looper looper = handlerThread.getLooper();
                 Handler handler = new Handler(looper);
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(context, "arait bra?", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                handler.post(() -> Toast.makeText(context, "Image processed successfully!", Toast.LENGTH_SHORT).show());
             }
 
+            is_processed.set(true);
 
         }).start();
     }
