@@ -8,11 +8,17 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+
+import androidx.exifinterface.media.ExifInterface;
+
+import android.graphics.Matrix;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -27,12 +33,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 // TODO Activity -> FragmentActivity?
 
@@ -43,10 +51,12 @@ public class MainActivity extends AppCompatActivity {
     ActivityResultLauncher<Intent> camera_result_launcher;
 
     // put your server IP and Port here
-    protected final String SERVER_URL = "http://<IP>:<Port>/";
+//    protected final String SERVER_URL = "http://<IP>:<Port>/";
     protected final String APP_TAG = "temp";
     protected String photo_file_name = "photo.jpg";
-    File photo_file;
+    protected File photo_file;
+
+    protected AtomicBoolean is_processed;
 
     protected int REQUEST_CODE_PERMISSIONS = 101;
 
@@ -78,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileProvider);
 
                     camera_result_launcher.launch(takePictureIntent);
-                    Toast.makeText(MainActivity.this, "bebra bebra", Toast.LENGTH_LONG).show();
                 } catch (ActivityNotFoundException e) {
                     Log.e("Error", e.getMessage(), e);
                 }
@@ -90,15 +99,12 @@ public class MainActivity extends AppCompatActivity {
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
                         // by this point we have the camera photo on disk
-                        Bitmap photo = BitmapFactory.decodeFile(photo_file.getAbsolutePath());
+//                        String tmp = "/storage/emulated/0/Android/data/com.example.camera4/files/Pictures/temp/photo_1.jpg";
+//                        Bitmap photo = BitmapFactory.decodeFile(tmp);
+//                        int image_orientation = getCameraPhotoOrientation(tmp);
 
-                        // Convert the image to a JPEG format
-                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                        photo.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-                        byte[] image_bytes = byteArrayOutputStream.toByteArray();
+                        new ImageProcess(MainActivity.this, photo_file.getAbsolutePath(), is_processed).processImage();
 
-                        // Send the image to the server
-                        sendImageToServer(image_bytes);
 
                     } else {
                         Toast.makeText(this, "Error while taking picture", Toast.LENGTH_SHORT).show();
@@ -123,48 +129,6 @@ public class MainActivity extends AppCompatActivity {
         return new File(mediaStorageDir.getPath() + File.separator + fileName);
     }
 
-    protected void sendImageToServer(final byte[] imageBytes) {
-        new Thread(() -> {
-            try {
-                // put your server IP and Port here
-                URL url = new URL(SERVER_URL);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("POST");
-                connection.setDoOutput(true);
-                connection.setRequestProperty("Content-Type", "image/jpeg");
-                connection.setRequestProperty("Content-Length", String.valueOf(imageBytes.length));
-
-                OutputStream outputStream = connection.getOutputStream();
-                outputStream.write(imageBytes);
-                outputStream.flush();
-                outputStream.close();
-
-                // TODO error, but image is sent
-                int responseCode = connection.getResponseCode();
-//                if (responseCode == HttpURLConnection.HTTP_OK) {
-//                    InputStream inputStream = connection.getInputStream();
-//                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-//                    StringBuilder response = new StringBuilder();
-//                    String line;
-//                    while ((line = reader.readLine()) != null) {
-//                        response.append(line);
-//                    }
-//                    reader.close();
-//                    inputStream.close();
-////                    connection.disconnect();
-//                    Log.d("Response", response.toString());
-//                } else {
-//                    Log.e("Response Error", "Failed with response code: " + responseCode);
-//                }
-            } catch (IOException e) {
-                Log.e("Error", e.getMessage(), e);
-
-            }
-        }).start();
-    }
-
-    // TODO GET picture from the server
-
     protected boolean allPermissionsGranted() {
         for (String permission : REQUIRED_PERMISSIONS) {
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
@@ -173,4 +137,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
+
 }
+
