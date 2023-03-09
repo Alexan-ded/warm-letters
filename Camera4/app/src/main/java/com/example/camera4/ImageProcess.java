@@ -13,32 +13,41 @@ import androidx.exifinterface.media.ExifInterface;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Properties;
 import java.util.Vector;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImageProcess {
-
-    // put your server IP and Port here
-//    protected final String SERVER_URL = "http://<IP>:<Port>/";
-
+    protected final String serverURL;
 
     protected final Executor executor;
     protected final Context context;
 
-    protected String filename;
+    protected final String filename;
 
-    protected AtomicBoolean is_processed;
+    protected AtomicBoolean is_image_sent;
 
-    public ImageProcess(Context context, String filename, AtomicBoolean is_processed) {
+    public ImageProcess(Context context, String filename, AtomicBoolean is_image_sent) {
         executor = Executors.newSingleThreadExecutor();
         this.context = context;
         this.filename = filename;
-        this.is_processed = is_processed;
+        this.is_image_sent = is_image_sent;
+
+        Properties prop = new Properties();
+        try {
+            InputStream input = this.context.getAssets().open("config/config.yaml");
+            prop.load(new InputStreamReader(input));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        serverURL = "http://" + prop.getProperty("ip_address") + ":" + prop.getProperty("port") + "/";
     }
 
     public void processImage() {
@@ -49,8 +58,6 @@ public class ImageProcess {
             rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
             byte[] image_bytes = byteArrayOutputStream.toByteArray();
 
-
-            // Send the image to the server
             sendImageToServer(image_bytes);
 
         });
@@ -58,9 +65,10 @@ public class ImageProcess {
 
     protected void sendImageToServer(final byte[] imageBytes) {
         new Thread(() -> {
+            HttpURLConnection connection = null;
             try {
-                URL url = new URL(SERVER_URL);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                URL url = new URL(serverURL);
+                connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setDoOutput(true);
                 connection.setRequestProperty("Content-Type", "image/jpeg");
@@ -70,53 +78,48 @@ public class ImageProcess {
                 outputStream.write(imageBytes);
                 outputStream.flush();
                 outputStream.close();
-
-                // TODO error, but image is sent
                 int responseCode = connection.getResponseCode();
-//                if (responseCode == HttpURLConnection.HTTP_OK) {
-//                    InputStream inputStream = connection.getInputStream();
-//                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-//                    StringBuilder response = new StringBuilder();
-//                    String line;
-//                    while ((line = reader.readLine()) != null) {
-//                        response.append(line);
-//                    }
-//                    reader.close();
-//                    inputStream.close();
-////                    connection.disconnect();
-//                    Log.d("Response", response.toString());
-//                } else {
-//                    Log.e("Response Error", "Failed with response code: " + responseCode);
-//                }
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    for (int ii = 0; ii < 5; ++ii) {
+                        Vector<Long> time_consuming_vector = new Vector<Long>();
+                        for (long i = 0; i < 10_000_000; ++i) {
+                            time_consuming_vector.add(i);
+                            time_consuming_vector.clear();
+                        }
+                    }
+                    showToast("Image sent to server for processing");
+                } else {
+                    showToast("Filed to send image to server");
+                    Log.e("Response Error", "Failed with response code: " + responseCode);
+                }
             } catch (IOException e) {
                 Log.e("Error", e.getMessage(), e);
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
             }
-
-
-            Vector<Long> time_consuming_vector = new Vector<Long>();
-            for (long i = 0; i < 10_000_000; ++i) {
-                time_consuming_vector.add(i);
-            }
-
-            if (Looper.myLooper() == Looper.getMainLooper()) {
-                // We're on the main thread, no need to create a new looper
-                Toast.makeText(context, "Image processed successfully!", Toast.LENGTH_SHORT).show();
-            } else {
-                // We're on a background thread, need to create a new looper
-                HandlerThread handlerThread = new HandlerThread("ImageProcessHandlerThread");
-                handlerThread.start();
-                Looper looper = handlerThread.getLooper();
-                Handler handler = new Handler(looper);
-                handler.post(() -> Toast.makeText(context, "Image processed successfully!", Toast.LENGTH_SHORT).show());
-            }
-
-            is_processed.set(true);
-
+            is_image_sent.set(true);
         }).start();
     }
 
 
     // TODO GET picture from the server
+
+
+    private void showToast(final String message) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            // We're on the main thread, no need to create a new looper
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        } else {
+            // We're on a background thread, need to create a new looper
+            HandlerThread handlerThread = new HandlerThread("ImageProcessHandlerThread");
+            handlerThread.start();
+            Looper looper = handlerThread.getLooper();
+            Handler handler = new Handler(looper);
+            handler.post(() -> Toast.makeText(context, message, Toast.LENGTH_SHORT).show());
+        }
+    }
 
 
     private Bitmap rotateBitmap(String filename) {

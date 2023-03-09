@@ -34,13 +34,11 @@ public class MainActivity extends AppCompatActivity {
     protected ImageView picture_received;
     ActivityResultLauncher<Intent> camera_result_launcher;
 
-    // put your server IP and Port here
-//    protected final String SERVER_URL = "http://<IP>:<Port>/";
     protected final String APP_TAG = "temp";
     protected String imageFileName = "photo.jpg";
     protected File ImageFile;
 
-    protected AtomicBoolean is_processed = new AtomicBoolean(true);
+    protected AtomicBoolean is_image_sent = new AtomicBoolean(true);
 
     protected int REQUEST_CODE_PERMISSIONS = 101;
 
@@ -63,11 +61,11 @@ public class MainActivity extends AppCompatActivity {
         camera_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!is_processed.get()) {
-                    Toast.makeText(MainActivity.this, "зачилься другалёк", Toast.LENGTH_SHORT).show();
+                if (!is_image_sent.get()) {
+                    Toast.makeText(MainActivity.this, "зачилься другалёк, картинка отправляется", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                is_processed.set(false);
+                is_image_sent.set(false);
                 Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 try {
                     // Create a File reference for future access
@@ -87,16 +85,10 @@ public class MainActivity extends AppCompatActivity {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
-                        // by this point we have the camera photo on disk
-//                        String tmp = "/storage/emulated/0/Android/data/com.example.camera4/files/Pictures/temp/photo_1.jpg";
-//                        Bitmap photo = BitmapFactory.decodeFile(tmp);
-//                        int image_orientation = getCameraPhotoOrientation(tmp);
-
-                        new ImageProcess(MainActivity.this, ImageFile.getAbsolutePath(), is_processed).processImage();
-
-
+                        new ImageProcess(MainActivity.this, ImageFile.getAbsolutePath(), is_image_sent).processImage();
                     } else {
                         Toast.makeText(this, "Error while taking picture", Toast.LENGTH_SHORT).show();
+                        is_image_sent.set(true);
                     }
                 }
         );
