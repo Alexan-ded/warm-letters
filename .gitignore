@@ -9,6 +9,7 @@ Camera4/.idea/modules.xml
 Camera4/.idea/workspace.xml
 Camera4/.idea/navEditor.xml
 Camera4/.idea/assetWizardSettings.xml
+Camera4/app/src/main/assets/config/config.yaml
 Camera4/*.iml
 Camera4/.gradle
 Camera4/local.properties
