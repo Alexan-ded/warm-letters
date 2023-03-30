@@ -2,6 +2,7 @@ package com.example.camera4;
 
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -33,28 +34,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 // TODO Activity -> FragmentActivity?
 // TODO Permissions
-// TODO Use ActivityResultContracts.PickVisualMedia, avoid reinventing its features
-
-// I got a Uri where to save a picture (left)
-// to impl (right)
+// TODO file related vars are excessive
 
 public class MainActivity extends AppCompatActivity {
-
     protected ImageButton camera_button;
     protected ImageButton gallery_button;
     protected ImageView picture_received;
     ActivityResultLauncher<Uri> camera_result_launcher;
-    ActivityResultLauncher<Intent> gallery_result_launcher;
-
+    ActivityResultLauncher<PickVisualMediaRequest> gallery_result_launcher;
     protected final String APP_TAG = "temp";
     protected String image_file_name = "photo.jpg";
     protected File image_file;
-
     protected AtomicBoolean is_image_sent = new AtomicBoolean(true);
-
     protected int REQUEST_CODE_PERMISSIONS = 101;
-
-    // TODO external storage is permission is not needed?
     protected String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA",
             "android.permission.WRITE_EXTERNAL_STORAGE"};
 
@@ -64,7 +56,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         if (!allPermissionsGranted()) {
-            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
+            ActivityCompat.requestPermissions(
+                    this,
+                    REQUIRED_PERMISSIONS,
+                    REQUEST_CODE_PERMISSIONS
+            );
         }
 
         camera_button = findViewById(R.id.camera_button);
@@ -75,14 +71,18 @@ public class MainActivity extends AppCompatActivity {
             if (!is_image_sent.get()) {
                 Toast.makeText(MainActivity.this,
                         "зачилься другалёк, картинка отправляется",
-                        Toast.LENGTH_SHORT).show();
+                        Toast.LENGTH_SHORT
+                ).show();
                 return;
             }
             is_image_sent.set(false);
             try {
                 image_file = getPhotoFileUri(image_file_name);
-                Uri fileProvider = FileProvider.getUriForFile(MainActivity.this,
-                        BuildConfig.APPLICATION_ID + ".provider", image_file);
+                Uri fileProvider = FileProvider.getUriForFile(
+                        MainActivity.this,
+                        BuildConfig.APPLICATION_ID + ".provider",
+                        image_file
+                );
                 camera_result_launcher.launch(fileProvider);
             } catch (ActivityNotFoundException e) {
                 Log.e("Error", e.getMessage(), e);
@@ -93,35 +93,55 @@ public class MainActivity extends AppCompatActivity {
                 new ActivityResultContracts.TakePicture(),
                 result -> {
                     if (result) {
-                        Bitmap picture_bitmap = BitmapFactory.decodeFile(image_file.getAbsolutePath());
-                        ImageProcess process = new ImageProcess(MainActivity.this,
-                                image_file.getAbsolutePath(),
-                                is_image_sent);
-                        process.processImage();
+                        ImageProcess process = new ImageProcess(
+                                MainActivity.this,
+                                is_image_sent,
+                                image_file.getAbsolutePath()
+                        );
+                        process.processImageFromCamera();
                     } else {
-                        Toast.makeText(this,
-                                "Error while taking picture",
-                                Toast.LENGTH_SHORT).show();
+                        Toast.makeText(
+                                this,
+                                "Warning: no picture taken",
+                                Toast.LENGTH_SHORT
+                        ).show();
                         is_image_sent.set(true);
                     }
                 }
         );
 
         gallery_button.setOnClickListener(view -> {
-            // TODO
-            Toast.makeText(this, "not implemented", Toast.LENGTH_SHORT).show();
-//            gallery_result_launcher.launch(null);
-            // TODO
+            if (!is_image_sent.get()) {
+                Toast.makeText(
+                        MainActivity.this,
+                        "зачилься другалёк, картинка отправляется",
+                        Toast.LENGTH_SHORT
+                ).show();
+                return;
+            }
+            is_image_sent.set(false);
+            gallery_result_launcher.launch(new PickVisualMediaRequest.Builder()
+                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                    .build()
+            );
         });
 
         gallery_result_launcher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
+                new ActivityResultContracts.PickVisualMedia(),
+                uri -> {
+                    // Callback is invoked after the user selects a media item or closes the
+                    // photo picker.
+                    if (uri != null) {
+                        Log.d("PhotoPicker", "Selected URI: " + uri);
 
-                    // TODO rewrite the whole thing
-
-                    Toast.makeText(this, "tmp", Toast.LENGTH_SHORT).show();
-
+                        ImageProcess process = new ImageProcess(MainActivity.this,
+                                is_image_sent,
+                                uri);
+                        process.processImageFromGallery();
+                    } else {
+                        Log.d("PhotoPicker", "No media selected");
+                        is_image_sent.set(true);
+                    }
                 });
     }
 
