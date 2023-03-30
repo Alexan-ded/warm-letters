@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Camera4</string>
-    <string name="camera_button">The button to turn on the camera</string>
-    <string name="server_received_image">The image received from the server</string>
+    <string name="camera_button">Take a picture</string>
+    <string name="gallery_button">Open gallery</string>
+    <string name="server_received_image">TODO</string>
 </resources>

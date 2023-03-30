@@ -80,13 +80,26 @@ public class ImageProcess {
                 outputStream.close();
                 int responseCode = connection.getResponseCode();
                 if (responseCode == HttpURLConnection.HTTP_OK) {
-                    for (int ii = 0; ii < 5; ++ii) {
-                        Vector<Long> time_consuming_vector = new Vector<Long>();
-                        for (long i = 0; i < 10_000_000; ++i) {
-                            time_consuming_vector.add(i);
-                            time_consuming_vector.clear();
-                        }
-                    }
+
+//                    for (int ii = 0; ii < 5; ++ii) {
+//                        Vector<Long> time_consuming_vector = new Vector<Long>();
+//                        for (long i = 0; i < 10_000_000; ++i) {
+//                            time_consuming_vector.add(i);
+//                            time_consuming_vector.clear();
+//                        }
+//                    }
+
+
+
+
+                    InputStream inputStream = connection.getInputStream();
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+
+
+
+
+
                     showToast("Image sent to server for processing");
                 } else {
                     showToast("Filed to send image to server");
