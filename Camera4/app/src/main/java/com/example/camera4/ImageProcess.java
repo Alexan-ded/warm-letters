@@ -48,6 +48,7 @@ public class ImageProcess {
             prop.load(new InputStreamReader(input));
         } catch (IOException e) {
             e.printStackTrace();
+            showToast("config error");
         }
         this.serverURL = "http://" + prop.getProperty("ip_address") + ":" + prop.getProperty("port") + "/";
     }
@@ -75,6 +76,7 @@ public class ImageProcess {
                                 .openInputStream(image_uri));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
+                showToast("Error: file not found");
             }
             assert bitmap != null;
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
