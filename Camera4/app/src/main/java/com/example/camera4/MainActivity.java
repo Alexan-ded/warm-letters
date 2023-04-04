@@ -5,30 +5,32 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
-
-import android.content.ActivityNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Toast;
-
 import java.io.File;
-
 import android.util.Log;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
-// TODO Permissions
-// TODO custom toast (snackbar?)
+// Background calculations can mess up with snackbar bruuuuuuuh
+
+// TODO server connection settings
+// TODO permissions
 // TODO package name
 // TODO project refactoring
-// TODO refactor ImageProcess constructors?
+// TODO button feedback
+// TODO naming refactoring
 
-// TODO animation
+// TODO photo picker rotation
+
+// TODO final animation
 
 public class MainActivity extends AppCompatActivity {
+
+    protected View mainView;
     protected ImageButton camera_button;
     protected ImageButton gallery_button;
     protected ImageView picture_received;
@@ -37,53 +39,44 @@ public class MainActivity extends AppCompatActivity {
     protected File image_file;
     protected AtomicBoolean is_image_sent = new AtomicBoolean(true);
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mainView = findViewById(android.R.id.content);
         camera_button = findViewById(R.id.camera_button);
         gallery_button = findViewById(R.id.gallery_button);
         picture_received = findViewById(R.id.server_received_image);
 
         camera_button.setOnClickListener(view -> {
             if (!is_image_sent.get()) {
-                Toast.makeText(MainActivity.this,
-                        "зачилься другалёк, картинка отправляется",
-                        Toast.LENGTH_SHORT
-                ).show();
+                showSnackBar("зачилься другалёк, картинка отправляется");
                 return;
             }
             is_image_sent.set(false);
-            try {
-                image_file = getPhotoFileUri("photo.jpg");
-                Uri fileProvider = FileProvider.getUriForFile(
-                        MainActivity.this,
-                        BuildConfig.APPLICATION_ID + ".provider",
-                        image_file
-                );
-                camera_result_launcher.launch(fileProvider);
-            } catch (ActivityNotFoundException e) {
-                Log.e("Error", e.getMessage(), e);
-            }
+            image_file = getPhotoFileUri();
+            Uri fileProvider = FileProvider.getUriForFile(
+                    MainActivity.this,
+                    BuildConfig.APPLICATION_ID + ".provider",
+                    image_file
+            );
+            camera_result_launcher.launch(fileProvider);
         });
 
         camera_result_launcher = registerForActivityResult(
                 new ActivityResultContracts.TakePicture(),
                 result -> {
                     if (result) {
-                        ImageProcess process = new ImageProcess(
-                                MainActivity.this,
+                        ImageProcess process = new ImageProcess(this,
+                                mainView,
                                 is_image_sent,
                                 image_file.getAbsolutePath()
                         );
                         process.processImageFromCamera();
                     } else {
-                        Toast.makeText(
-                                this,
-                                "Warning: no picture taken",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                        showSnackBar("No photo taken");
                         is_image_sent.set(true);
                     }
                 }
@@ -91,11 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
         gallery_button.setOnClickListener(view -> {
             if (!is_image_sent.get()) {
-                Toast.makeText(
-                        MainActivity.this,
-                        "зачилься другалёк, картинка отправляется",
-                        Toast.LENGTH_SHORT
-                ).show();
+                showSnackBar("зачилься другалёк, картинка отправляется");
                 return;
             }
             is_image_sent.set(false);
@@ -113,25 +102,22 @@ public class MainActivity extends AppCompatActivity {
                     if (uri != null) {
                         Log.d("PhotoPicker", "Selected URI: " + uri);
                         ImageProcess process = new ImageProcess(
-                                MainActivity.this,
+                                this,
+                                mainView,
                                 is_image_sent,
                                 uri
                         );
                         process.processImageFromGallery();
                     } else {
                         Log.d("PhotoPicker", "No media selected");
-                        Toast.makeText(
-                                this,
-                                "PhotoPicker: No media selected",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                        showSnackBar("No image selected");
                         is_image_sent.set(true);
                     }
                 });
     }
 
     // Returns the File for a photo stored on disk given the fileName
-    public File getPhotoFileUri(String fileName) {
+    protected File getPhotoFileUri() {
         final String APP_TAG = "temp";
         // Get safe storage directory for photos
         // Use `getExternalFilesDir` on Context to access package-specific directories.
@@ -144,14 +130,14 @@ public class MainActivity extends AppCompatActivity {
         // Create the storage directory if it does not exist
         if (!mediaStorageDir.exists() && !mediaStorageDir.mkdirs()) {
             Log.d(APP_TAG, "failed to create directory");
-            Toast.makeText(
-                    this,
-                    "failed to create directory",
-                    Toast.LENGTH_SHORT
-            ).show();
+            showSnackBar("failed to create directory");
         }
 
         // Return the file target for the photo based on filename
-        return new File(mediaStorageDir.getPath() + File.separator + fileName);
+        return new File(mediaStorageDir.getPath() + File.separator + "photo.jpg");
+    }
+
+    protected void showSnackBar(String message) {
+        FunctionClass.showSnackBar(mainView, message);
     }
 }

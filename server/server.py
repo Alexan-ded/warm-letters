@@ -7,6 +7,8 @@ import yaml
 
 from requests_toolbelt.multipart import decoder
 
+from time import sleep
+
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
@@ -51,6 +53,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
         with open("image.jpg", "wb") as f:
             f.write(final_im)
+
+        sleep(11)
         
         self.send_response(200)
         self.end_headers()

@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.exifinterface.media.ExifInterface;
@@ -22,45 +23,42 @@ import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Properties;
-import java.util.Vector;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImageProcess {
-    protected final String serverURL;
-    protected Executor executor;
-    protected Context context;
-    protected AtomicBoolean is_image_sent;
-    protected String filename;
-    protected Uri image_uri = null;
+    protected final String SERVER_URL;
 
-    public ImageProcess(Context context, AtomicBoolean is_image_sent, String filename) {
+    protected Executor executor = null;
+    protected Context context = null;
+    protected View view = null;
+    protected AtomicBoolean isImageSent = null;
+    protected String fileName = null;
+    protected Uri imageUri = null;
+
+    public ImageProcess(Context context, View view, AtomicBoolean isImageSent) {
         this.executor = Executors.newSingleThreadExecutor();
-
         this.context = context;
-        this.is_image_sent = is_image_sent;
-        this.filename = filename;
+        this.view = view;
+        this.isImageSent = isImageSent;
 
-        Properties prop = new Properties();
-        try {
-            InputStream input = this.context.getAssets().open("config/config.yaml");
-            prop.load(new InputStreamReader(input));
-        } catch (IOException e) {
-            e.printStackTrace();
-            showToast("config error");
-        }
-        this.serverURL = "http://" + prop.getProperty("ip_address") + ":" + prop.getProperty("port") + "/";
+        this.SERVER_URL = getServerURL();
+    }
+    
+    public ImageProcess(Context context, View view, AtomicBoolean isImageSent, String fileName) {
+        this(context, view, isImageSent);
+        this.fileName = fileName;
     }
 
-    public ImageProcess(Context context, AtomicBoolean is_image_sent, Uri image_uri) {
-        this(context, is_image_sent, "");
-        this.image_uri = image_uri;
+    public ImageProcess(Context context, View view, AtomicBoolean isImageSent, Uri imageUri) {
+        this(context, view, isImageSent);
+        this.imageUri = imageUri;
     }
 
     public void processImageFromCamera() {
         executor.execute(() -> {
-            Bitmap rotatedBitmap = rotateBitmap(filename);
+            Bitmap rotatedBitmap = rotateBitmap(fileName);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
             byte[] image_bytes = byteArrayOutputStream.toByteArray();
@@ -73,10 +71,10 @@ public class ImageProcess {
             Bitmap bitmap = null;
             try {
                 bitmap = BitmapFactory.decodeStream(context.getContentResolver()
-                                .openInputStream(image_uri));
+                                .openInputStream(imageUri));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
-                showToast("Error: file not found");
+                showSnackBar("Error: file not found");
             }
             assert bitmap != null;
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -90,14 +88,14 @@ public class ImageProcess {
         new Thread(() -> {
             HttpURLConnection connection = null;
             try {
-                URL url = new URL(serverURL);
+                URL url = new URL(SERVER_URL);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setDoOutput(true);
                 connection.setRequestProperty("Content-Type", "image/jpeg");
                 connection.setRequestProperty("Content-Length", String.valueOf(imageBytes.length));
                 connection.setConnectTimeout(10_000);
-                connection.setReadTimeout(10_000);
+                connection.setReadTimeout(30_000);
 
                 OutputStream outputStream = connection.getOutputStream();
                 outputStream.write(imageBytes);
@@ -106,44 +104,35 @@ public class ImageProcess {
                 int responseCode = connection.getResponseCode();
                 if (responseCode == HttpURLConnection.HTTP_OK) {
 
-                    for (int ii = 0; ii < 5; ++ii) {
-                        Vector<Long> time_consuming_vector = new Vector<Long>();
-                        for (long i = 0; i < 10_000_000; ++i) {
-                            time_consuming_vector.add(i);
-                            time_consuming_vector.clear();
-                        }
-                    }
+//                    for (int ii = 0; ii < 5; ++ii) {
+//                        Vector<Long> time_consuming_vector = new Vector<Long>();
+//                        for (long i = 0; i < 100_000_000; ++i) {
+//                            time_consuming_vector.add(i);
+//                            time_consuming_vector.clear();
+//                        }
+//                    }
 
-                    showToast("Image sent to server for processing");
+//                    showToast("Image sent to server for processing");
+                    showSnackBar("Image sent to server for processing");
                 } else {
-                    showToast("Filed to send image to server");
+                    FunctionClass.showSnackBar(view, "Filed to send image to server");
                     Log.e("Response Error", "Failed with response code: " + responseCode);
                 }
             } catch (SocketTimeoutException e) {
-                showToast("Server timeout");
+                showSnackBar("Server timeout");
             } catch (IOException e) {
-                showToast("Server communication error");
+                showSnackBar("Server communication error");
             } finally {
                 if (connection != null) {
                     connection.disconnect();
                 }
             }
-            is_image_sent.set(true);
+            isImageSent.set(true);
         }).start();
     }
 
-    private void showToast(final String message) {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            // We're on the main thread, no need to create a new looper
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-        } else {
-            // We're on a background thread, need to create a new looper
-            HandlerThread handlerThread = new HandlerThread("ImageProcessHandlerThread");
-            handlerThread.start();
-            Looper looper = handlerThread.getLooper();
-            Handler handler = new Handler(looper);
-            handler.post(() -> Toast.makeText(context, message, Toast.LENGTH_SHORT).show());
-        }
+    protected void showSnackBar(String message) {
+        FunctionClass.showSnackBar(view, message);
     }
 
     private Bitmap rotateBitmap(String filename) {
@@ -180,5 +169,17 @@ public class ImageProcess {
             e.printStackTrace();
         }
         return bitmap;
+    }
+
+    protected String getServerURL() {
+        Properties properties = new Properties();
+        try {
+            InputStream input = this.context.getAssets().open("config/config.yaml");
+            properties.load(new InputStreamReader(input));
+        } catch (IOException e) {
+            e.printStackTrace();
+            showSnackBar("config error");
+        }
+        return "http://" + properties.getProperty("ip_address") + ":" + properties.getProperty("port") + "/";
     }
 }
