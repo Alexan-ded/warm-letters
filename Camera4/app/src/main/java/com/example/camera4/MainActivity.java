@@ -5,14 +5,18 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
+
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+
 import java.io.File;
+
 import android.util.Log;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // Background calculations can mess up with snackbar bruuuuuuuh
@@ -22,7 +26,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 // TODO package name
 // TODO project refactoring
 // TODO button feedback
-// TODO naming refactoring
 
 // TODO photo picker rotation
 
@@ -31,13 +34,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MainActivity extends AppCompatActivity {
 
     protected View mainView;
-    protected ImageButton camera_button;
-    protected ImageButton gallery_button;
-    protected ImageView picture_received;
-    ActivityResultLauncher<Uri> camera_result_launcher;
-    ActivityResultLauncher<PickVisualMediaRequest> gallery_result_launcher;
-    protected File image_file;
-    protected AtomicBoolean is_image_sent = new AtomicBoolean(true);
+    protected ImageButton cameraButton;
+    protected ImageButton galleryButton;
+    protected ImageView pictureReceived;
+    ActivityResultLauncher<Uri> cameraResultLauncher;
+    ActivityResultLauncher<PickVisualMediaRequest> photoPickerResultLauncher;
+    protected File imageFile;
+    protected AtomicBoolean isImageSent = new AtomicBoolean(true);
 
 
     @Override
@@ -46,72 +49,71 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mainView = findViewById(android.R.id.content);
-        camera_button = findViewById(R.id.camera_button);
-        gallery_button = findViewById(R.id.gallery_button);
-        picture_received = findViewById(R.id.server_received_image);
+        cameraButton = findViewById(R.id.cameraButton);
+        galleryButton = findViewById(R.id.galleryButton);
+        pictureReceived = findViewById(R.id.pictureReceived);
 
-        camera_button.setOnClickListener(view -> {
-            if (!is_image_sent.get()) {
+        cameraButton.setOnClickListener(view -> {
+            if (!isImageSent.get()) {
                 showSnackBar("зачилься другалёк, картинка отправляется");
                 return;
             }
-            is_image_sent.set(false);
-            image_file = getPhotoFileUri();
+            isImageSent.set(false);
+            imageFile = getPhotoFileUri();
             Uri fileProvider = FileProvider.getUriForFile(
                     MainActivity.this,
                     BuildConfig.APPLICATION_ID + ".provider",
-                    image_file
+                    imageFile
             );
-            camera_result_launcher.launch(fileProvider);
+            cameraResultLauncher.launch(fileProvider);
         });
 
-        camera_result_launcher = registerForActivityResult(
+        cameraResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.TakePicture(),
                 result -> {
                     if (result) {
-                        ImageProcess process = new ImageProcess(this,
+                        ImageProcess imageProcess = new ImageProcess(this,
                                 mainView,
-                                is_image_sent,
-                                image_file.getAbsolutePath()
+                                isImageSent,
+                                imageFile.getAbsolutePath()
                         );
-                        process.processImageFromCamera();
+                        imageProcess.processImageFromCamera();
                     } else {
                         showSnackBar("No photo taken");
-                        is_image_sent.set(true);
+                        isImageSent.set(true);
                     }
                 }
         );
 
-        gallery_button.setOnClickListener(view -> {
-            if (!is_image_sent.get()) {
+        galleryButton.setOnClickListener(view -> {
+            if (!isImageSent.get()) {
                 showSnackBar("зачилься другалёк, картинка отправляется");
                 return;
             }
-            is_image_sent.set(false);
-            gallery_result_launcher.launch(new PickVisualMediaRequest.Builder()
+            isImageSent.set(false);
+            photoPickerResultLauncher.launch(new PickVisualMediaRequest.Builder()
                     .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
                     .build()
             );
         });
 
-        gallery_result_launcher = registerForActivityResult(
+        photoPickerResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.PickVisualMedia(),
                 uri -> {
                     // Callback is invoked after the user selects a media item or closes the
                     // photo picker.
                     if (uri != null) {
-                        Log.d("PhotoPicker", "Selected URI: " + uri);
-                        ImageProcess process = new ImageProcess(
+                        ImageProcess imageProcess = new ImageProcess(
                                 this,
                                 mainView,
-                                is_image_sent,
+                                isImageSent,
                                 uri
                         );
-                        process.processImageFromGallery();
+                        imageProcess.processImageFromGallery();
                     } else {
                         Log.d("PhotoPicker", "No media selected");
                         showSnackBar("No image selected");
-                        is_image_sent.set(true);
+                        isImageSent.set(true);
                     }
                 });
     }

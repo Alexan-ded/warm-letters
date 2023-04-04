@@ -4,12 +4,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.exifinterface.media.ExifInterface;
 
@@ -112,7 +108,6 @@ public class ImageProcess {
 //                        }
 //                    }
 
-//                    showToast("Image sent to server for processing");
                     showSnackBar("Image sent to server for processing");
                 } else {
                     FunctionClass.showSnackBar(view, "Filed to send image to server");
