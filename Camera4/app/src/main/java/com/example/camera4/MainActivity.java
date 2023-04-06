@@ -6,9 +6,13 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -17,6 +21,13 @@ import java.io.File;
 
 import android.util.Log;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // Background calculations can mess up with snackbar bruuuuuuuh
@@ -26,10 +37,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 // TODO package name
 // TODO project refactoring
 // TODO button feedback
+// TODO E/example.camera: open libmigui.so failed! dlopen - dlopen failed: library "libmigui.so" not found
+// TODO delete file in destructor?
+// TODO save picture from camera to MediaStore
 
 // TODO photo picker rotation
 
 // TODO final animation
+
+
+// create a file, get its uri, if nothing saved there -> delete file by its uri, if success, good
+
+// is_pending for api >= 29, MediaStore.Images.Media.insertImage for lower
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,9 +56,9 @@ public class MainActivity extends AppCompatActivity {
     protected ImageButton cameraButton;
     protected ImageButton galleryButton;
     protected ImageView pictureReceived;
-    ActivityResultLauncher<Uri> cameraResultLauncher;
-    ActivityResultLauncher<PickVisualMediaRequest> photoPickerResultLauncher;
-    protected File imageFile;
+    protected ActivityResultLauncher<Uri> cameraResultLauncher;
+    protected ActivityResultLauncher<PickVisualMediaRequest> photoPickerResultLauncher;
+    protected Uri photoUri = null;
     protected AtomicBoolean isImageSent = new AtomicBoolean(true);
 
 
@@ -53,37 +72,46 @@ public class MainActivity extends AppCompatActivity {
         galleryButton = findViewById(R.id.galleryButton);
         pictureReceived = findViewById(R.id.pictureReceived);
 
+        /*
+
         cameraButton.setOnClickListener(view -> {
             if (!isImageSent.get()) {
                 showSnackBar("зачилься другалёк, картинка отправляется");
                 return;
             }
             isImageSent.set(false);
-            imageFile = getPhotoFileUri();
-            Uri fileProvider = FileProvider.getUriForFile(
-                    MainActivity.this,
-                    BuildConfig.APPLICATION_ID + ".provider",
-                    imageFile
-            );
-            cameraResultLauncher.launch(fileProvider);
+//            if (photoUri == null) {
+//                photoUri = FileProvider.getUriForFile(
+//                        this,
+//                        BuildConfig.APPLICATION_ID + ".provider",
+//                        generateTempPhotoFile()
+//                );
+//            }
+//            cameraResultLauncher.launch(photoUri);
         });
 
         cameraResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.TakePicture(),
                 result -> {
                     if (result) {
+
+                        photoUri = savePhotoToMediaStore();
+
+
                         ImageProcess imageProcess = new ImageProcess(this,
                                 mainView,
                                 isImageSent,
-                                imageFile.getAbsolutePath()
+                                photoUri
                         );
-                        imageProcess.processImageFromCamera();
+                        imageProcess.processImageFromGallery();
                     } else {
                         showSnackBar("No photo taken");
                         isImageSent.set(true);
                     }
                 }
         );
+
+         */
 
         galleryButton.setOnClickListener(view -> {
             if (!isImageSent.get()) {
@@ -116,26 +144,129 @@ public class MainActivity extends AppCompatActivity {
                         isImageSent.set(true);
                     }
                 });
-    }
 
-    // Returns the File for a photo stored on disk given the fileName
-    protected File getPhotoFileUri() {
-        final String APP_TAG = "temp";
-        // Get safe storage directory for photos
-        // Use `getExternalFilesDir` on Context to access package-specific directories.
-        // This way, we don't need to request external read/write runtime permissions.
-        File mediaStorageDir = new File(
-                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-                APP_TAG
-        );
 
-        // Create the storage directory if it does not exist
-        if (!mediaStorageDir.exists() && !mediaStorageDir.mkdirs()) {
-            Log.d(APP_TAG, "failed to create directory");
-            showSnackBar("failed to create directory");
+        ActivityResultLauncher<Uri> bebra = registerForActivityResult(new ActivityResultContracts.TakePicture(), result -> {
+            if (result) {
+
+                // Insert the picture into the MediaStore
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.Images.Media.DISPLAY_NAME, "My Image");
+                    values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                    values.put(MediaStore.Images.Media.IS_PENDING, 1);
+
+                    ContentResolver resolver = getContentResolver();
+                    imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+                    try (OutputStream os = resolver.openOutputStream(imageUri)) {
+                        // Save the image data to the output stream
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    values.clear();
+                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    resolver.update(imageUri, values, null, null);
+
+                } else {
+                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+                    String fileName = "IMG_" + timeStamp + ".jpg";
+                    File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+                    File imageFile = new File(storageDir, fileName);
+
+                    try (OutputStream os = new FileOutputStream(imageFile)) {
+                        // Save the image data to the output stream
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    imageUri = Uri.fromFile(imageFile);
+
+                    // Insert the picture into the MediaStore
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.Images.Media.DATA, imageFile.getAbsolutePath());
+                    values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+                    getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                }
+            }
+        });
+
+        try {
+            File photka = createImageFile();
+            imageUri = FileProvider.getUriForFile(
+                        this,
+                        BuildConfig.APPLICATION_ID + ".provider",
+                        photka
+                );
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
-        // Return the file target for the photo based on filename
+        bebra.launch(imageUri);
+
+    }
+
+
+
+
+
+
+
+
+    protected Uri imageUri;
+
+
+
+
+
+
+
+
+
+
+
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        return image;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Returns the File for a photo stored on disk given the fileName
+    protected File generateTempPhotoFile() {
+        final String DIR_NAME = "temp";
+        File mediaStorageDir = new File(
+                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+                DIR_NAME
+        );
+        if (!mediaStorageDir.exists() && !mediaStorageDir.mkdirs()) {
+            Log.d(DIR_NAME, "Error: Failed to create a directory to save the photo");
+            showSnackBar("Error: Failed to create a directory to save the photo");
+        }
         return new File(mediaStorageDir.getPath() + File.separator + "photo.jpg");
     }
 

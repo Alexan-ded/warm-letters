@@ -77,6 +77,38 @@ public class ImageProcess {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
             byte[] image_bytes = byteArrayOutputStream.toByteArray();
             sendImageToServer(image_bytes);
+
+
+
+
+//            // Get the input stream for the image URI
+//            InputStream inputStream = null;
+//            try {
+//                inputStream = context.getContentResolver().openInputStream(imageUri);
+//            } catch (FileNotFoundException e) {
+//                throw new RuntimeException(e);
+//            }
+//
+//            // Get the orientation information from the image file
+//            ExifInterface exif = null;
+//            try {
+//                exif = new ExifInterface(inputStream);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+//
+//            // Decode the image and apply the appropriate rotation
+//            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+////            bitmap = rotateBitmap(bitmap, orientation);
+//
+//            // Use the rotated bitmap as needed
+////            imageView.setImageBitmap(bitmap);
+
+
+
+
+
         });
     }
 
