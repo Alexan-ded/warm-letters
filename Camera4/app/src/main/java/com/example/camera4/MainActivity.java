@@ -17,7 +17,6 @@ import java.io.File;
 
 import android.util.Log;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // Background calculations can mess up with snackbar bruuuuuuuh
@@ -27,9 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 // TODO project refactoring
 // TODO button feedback
 // TODO E/example.camera: open libmigui.so failed! dlopen - dlopen failed: library "libmigui.so" not found
-// TODO delete file in destructor? (create temp file)
-
-// TODO photo picker rotation
+// TODO delete file in destructor
 
 // TODO final animation
 
@@ -76,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
                                 isImageSent,
                                 photoUri
                         );
-                        imageProcess.processImageFromGallery();
+                        imageProcess.processImage();
                     } else {
                         showSnackBar("No photo taken");
                         isImageSent.set(true);
@@ -106,51 +103,24 @@ public class MainActivity extends AppCompatActivity {
                                 isImageSent,
                                 uri
                         );
-                        imageProcess.processImageFromGallery();
+                        imageProcess.processImage();
                     } else {
                         Log.d("PhotoPicker", "No media selected");
                         showSnackBar("No image selected");
                         isImageSent.set(true);
                     }
                 });
-
-
     }
 
     private Uri createPhotoUri() {
-        Uri res = null;
-        try {
-            File photoFile = File.createTempFile(
-                    "image",
-                    ".jpg",
-                    getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-            );
-            res = FileProvider.getUriForFile(
-                    this,
-                    BuildConfig.APPLICATION_ID + ".provider",
-                    photoFile
-            );
-        } catch (IOException e) {
-            e.printStackTrace();
-            showSnackBar("Error: Failed to create photo Uri");
-        }
-        return res;
-    }
-
-
-
-    // Returns the File for a photo stored on disk given the fileName
-    protected File generateTempPhotoFile() {
-        final String DIR_NAME = "temp";
-        File mediaStorageDir = new File(
-                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-                DIR_NAME
+        File mediaStorageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File photoFile =
+                new File(mediaStorageDir.getPath() + File.separator + "photo.jpg");
+        return FileProvider.getUriForFile(
+                this,
+                BuildConfig.APPLICATION_ID + ".provider",
+                photoFile
         );
-        if (!mediaStorageDir.exists() && !mediaStorageDir.mkdirs()) {
-            Log.d(DIR_NAME, "Error: Failed to create a directory to save the photo");
-            showSnackBar("Error: Failed to create a directory to save the photo");
-        }
-        return new File(mediaStorageDir.getPath() + File.separator + "photo.jpg");
     }
 
     protected void showSnackBar(String message) {

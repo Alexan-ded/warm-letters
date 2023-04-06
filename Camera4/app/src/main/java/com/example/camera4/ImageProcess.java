@@ -24,91 +24,31 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImageProcess {
+
     protected final String SERVER_URL;
 
     protected Executor executor = null;
     protected Context context = null;
     protected View view = null;
     protected AtomicBoolean isImageSent = null;
-    protected String fileName = null;
     protected Uri imageUri = null;
 
-    public ImageProcess(Context context, View view, AtomicBoolean isImageSent) {
+    public ImageProcess(Context context, View view, AtomicBoolean isImageSent, Uri imageUri) {
+        this.SERVER_URL = getServerURL();
         this.executor = Executors.newSingleThreadExecutor();
         this.context = context;
         this.view = view;
         this.isImageSent = isImageSent;
-
-        this.SERVER_URL = getServerURL();
-    }
-    
-    public ImageProcess(Context context, View view, AtomicBoolean isImageSent, String fileName) {
-        this(context, view, isImageSent);
-        this.fileName = fileName;
-    }
-
-    public ImageProcess(Context context, View view, AtomicBoolean isImageSent, Uri imageUri) {
-        this(context, view, isImageSent);
         this.imageUri = imageUri;
     }
 
-    public void processImageFromCamera() {
+    public void processImage() {
         executor.execute(() -> {
-            Bitmap rotatedBitmap = rotateBitmap(fileName);
+            Bitmap rotatedBitmap = rotateBitmap(imageUri);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
             byte[] image_bytes = byteArrayOutputStream.toByteArray();
             sendImageToServer(image_bytes);
-        });
-    }
-
-    public void processImageFromGallery() {
-        executor.execute(() -> {
-            Bitmap bitmap = null;
-            try {
-                bitmap = BitmapFactory.decodeStream(context.getContentResolver()
-                                .openInputStream(imageUri));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                showSnackBar("Error: file not found");
-            }
-            assert bitmap != null;
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-            byte[] image_bytes = byteArrayOutputStream.toByteArray();
-            sendImageToServer(image_bytes);
-
-
-
-
-//            // Get the input stream for the image URI
-//            InputStream inputStream = null;
-//            try {
-//                inputStream = context.getContentResolver().openInputStream(imageUri);
-//            } catch (FileNotFoundException e) {
-//                throw new RuntimeException(e);
-//            }
-//
-//            // Get the orientation information from the image file
-//            ExifInterface exif = null;
-//            try {
-//                exif = new ExifInterface(inputStream);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-//
-//            // Decode the image and apply the appropriate rotation
-//            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-////            bitmap = rotateBitmap(bitmap, orientation);
-//
-//            // Use the rotated bitmap as needed
-////            imageView.setImageBitmap(bitmap);
-
-
-
-
-
         });
     }
 
@@ -158,14 +98,12 @@ public class ImageProcess {
         }).start();
     }
 
-    protected void showSnackBar(String message) {
-        FunctionClass.showSnackBar(view, message);
-    }
-
-    private Bitmap rotateBitmap(String filename) {
-        Bitmap bitmap = BitmapFactory.decodeFile(filename);
+    protected Bitmap rotateBitmap(Uri uri) {
+        Bitmap bitmap = null;
         try {
-            ExifInterface exif = new ExifInterface(filename);
+            bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri));
+            ExifInterface exif = new ExifInterface(
+                    context.getContentResolver().openInputStream(uri));
             int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION,
                     ExifInterface.ORIENTATION_NORMAL);
             int rotationAngle = 0;
@@ -192,8 +130,12 @@ public class ImageProcess {
                         matrix,
                         true);
             }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            showSnackBar("Error: Image not found");
         } catch (IOException e) {
             e.printStackTrace();
+            showSnackBar("Error: exif.getAttributeInt");
         }
         return bitmap;
     }
@@ -207,6 +149,14 @@ public class ImageProcess {
             e.printStackTrace();
             showSnackBar("config error");
         }
-        return "http://" + properties.getProperty("ip_address") + ":" + properties.getProperty("port") + "/";
+        return "http://"
+                + properties.getProperty("ip_address")
+                + ":"
+                + properties.getProperty("port")
+                + "/";
+    }
+
+    protected void showSnackBar(String message) {
+        FunctionClass.showSnackBar(view, message);
     }
 }
