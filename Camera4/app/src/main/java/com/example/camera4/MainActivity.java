@@ -68,7 +68,8 @@ public class MainActivity extends AppCompatActivity {
                 new ActivityResultContracts.TakePicture(),
                 result -> {
                     if (result) {
-                        ImageProcess imageProcess = new ImageProcess(this,
+                        ImageProcess imageProcess = new ImageProcess(
+                                this,
                                 mainView,
                                 isImageSent,
                                 photoUri
@@ -112,7 +113,16 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private Uri createPhotoUri() {
+//    @Override
+//    protected void onDestroy() {
+//        super.onDestroy();
+//        File photo = new File(photoUri.getPath());
+//        if (!photo.delete()) {
+//            Log.e("FileDeletion", "Failed to delete photo");
+//        }
+//    }
+
+    protected Uri createPhotoUri() {
         File mediaStorageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File photoFile =
                 new File(mediaStorageDir.getPath() + File.separator + "photo.jpg");

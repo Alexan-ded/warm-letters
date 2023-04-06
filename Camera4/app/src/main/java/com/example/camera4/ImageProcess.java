@@ -25,21 +25,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImageProcess {
 
-    protected final String SERVER_URL;
-
     protected Executor executor = null;
     protected Context context = null;
     protected View view = null;
     protected AtomicBoolean isImageSent = null;
     protected Uri imageUri = null;
 
+    protected final String SERVER_URL;
+
     public ImageProcess(Context context, View view, AtomicBoolean isImageSent, Uri imageUri) {
-        this.SERVER_URL = getServerURL();
         this.executor = Executors.newSingleThreadExecutor();
         this.context = context;
         this.view = view;
         this.isImageSent = isImageSent;
         this.imageUri = imageUri;
+
+        this.SERVER_URL = getServerURL();
     }
 
     public void processImage() {
@@ -143,7 +144,7 @@ public class ImageProcess {
     protected String getServerURL() {
         Properties properties = new Properties();
         try {
-            InputStream input = this.context.getAssets().open("config/config.yaml");
+            InputStream input = context.getAssets().open("config/config.yaml");
             properties.load(new InputStreamReader(input));
         } catch (IOException e) {
             e.printStackTrace();
