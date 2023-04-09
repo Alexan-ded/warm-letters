@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Camera4</string>
     <string name="camera_button">Take a picture</string>
-    <string name="gallery_button">Open gallery</string>
+    <string name="gallery_button">Pick an image from gallery</string>
     <string name="server_received_image">TODO</string>
+    <string name="main_text">Take a picture or choose from gallery:</string>
 </resources>

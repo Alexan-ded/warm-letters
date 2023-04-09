@@ -83,8 +83,8 @@ public class ImageProcess {
 
                     showSnackBar("Image sent to server for processing");
                 } else {
-                    FunctionClass.showSnackBar(view, "Filed to send image to server");
                     Log.e("Response Error", "Failed with response code: " + responseCode);
+                    showSnackBar("Error: Wrong response code");
                 }
             } catch (SocketTimeoutException e) {
                 showSnackBar("Server timeout");
@@ -94,8 +94,8 @@ public class ImageProcess {
                 if (connection != null) {
                     connection.disconnect();
                 }
+                isImageSent.set(true);
             }
-            isImageSent.set(true);
         }).start();
     }
 
@@ -144,6 +144,9 @@ public class ImageProcess {
     protected String getServerURL() {
         Properties properties = new Properties();
         try {
+            if (context == null) {
+                Log.e("getServerURL", "context is not initialized");
+            }
             InputStream input = context.getAssets().open("config/config.yaml");
             properties.load(new InputStreamReader(input));
         } catch (IOException e) {

@@ -1,5 +1,6 @@
 package com.example.camera4;
 
+import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -20,13 +21,18 @@ import android.util.Log;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // Background calculations can mess up with snackbar bruuuuuuuh
+// OnDestroy is not guaranteed to be called bruuuuuuuuuuuuuuuuh
+
+// сделайте фото или выберите из галереи
 
 // TODO server connection settings
+// TODO background tasks interruption in onPause
+// TODO implement callback when image sent to server instead of using AtomicBool
 // TODO package name
 // TODO project refactoring
-// TODO button feedback
-// TODO E/example.camera: open libmigui.so failed! dlopen - dlopen failed: library "libmigui.so" not found
-// TODO delete file in destructor
+// TODO change button pictures
+// TODO confirmation window on exit
+// TODO camera permission if API < 28 (works on 28, maybe even lower, not 24 tho)
 
 // TODO final animation
 
@@ -35,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     protected View mainView;
     protected ImageButton cameraButton;
     protected ImageButton galleryButton;
-    protected ImageView pictureReceived;
+    protected TextView pictureReceived;
     protected ActivityResultLauncher<Uri> cameraResultLauncher;
     protected ActivityResultLauncher<PickVisualMediaRequest> photoPickerResultLauncher;
     protected Uri photoUri = null;
@@ -61,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
             if (photoUri == null) {
                 photoUri = createPhotoUri();
             }
+            // TODO wait here for previous rotateBitmap() to complete?
             cameraResultLauncher.launch(photoUri);
         });
 
@@ -75,6 +82,8 @@ public class MainActivity extends AppCompatActivity {
                                 photoUri
                         );
                         imageProcess.processImage();
+                        // TODO callback when the data from the server is retrieved
+                        // TODO also delete temp photo here
                     } else {
                         showSnackBar("No photo taken");
                         isImageSent.set(true);
@@ -105,6 +114,8 @@ public class MainActivity extends AppCompatActivity {
                                 uri
                         );
                         imageProcess.processImage();
+
+                        // TODO callback when the data from the server is retrieved
                     } else {
                         Log.d("PhotoPicker", "No media selected");
                         showSnackBar("No image selected");
@@ -113,14 +124,17 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
-//        File photo = new File(photoUri.getPath());
-//        if (!photo.delete()) {
-//            Log.e("FileDeletion", "Failed to delete photo");
-//        }
-//    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.e("onDestroy", "onDestroy is called");
+        if (getContentResolver().delete(photoUri, null, null) == 0) {
+            Log.e("FileDeletion", "Failed to delete photo");
+        } else {
+            Log.e("FileDeletion", "Photo deleted");
+        }
+
+    }
 
     protected Uri createPhotoUri() {
         File mediaStorageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);

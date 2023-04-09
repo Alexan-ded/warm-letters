@@ -54,7 +54,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         with open("image.jpg", "wb") as f:
             f.write(final_im)
 
-        sleep(11)
+        sleep(4)
         
         self.send_response(200)
         self.end_headers()
