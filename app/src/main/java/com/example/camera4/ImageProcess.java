@@ -90,6 +90,8 @@ public class ImageProcess {
                 showSnackBar("Server timeout");
             } catch (IOException e) {
                 showSnackBar("Server communication error");
+            } catch (RuntimeException e) {
+                e.printStackTrace();
             } finally {
                 if (connection != null) {
                     connection.disconnect();
@@ -144,14 +146,13 @@ public class ImageProcess {
     protected String getServerURL() {
         Properties properties = new Properties();
         try {
-            if (context == null) {
-                Log.e("getServerURL", "context is not initialized");
-            }
+            assert context != null;
             InputStream input = context.getAssets().open("config/config.yaml");
             properties.load(new InputStreamReader(input));
         } catch (IOException e) {
             e.printStackTrace();
             showSnackBar("config error");
+            throw new RuntimeException("Missing config");
         }
         return "http://"
                 + properties.getProperty("ip_address")

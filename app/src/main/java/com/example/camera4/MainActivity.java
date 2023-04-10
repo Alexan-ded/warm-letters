@@ -29,7 +29,6 @@ TODO put colors to colors.xml
 TODO background tasks interruption in onPause
 TODO implement callback when image sent to server instead of using AtomicBool
 TODO package name
-TODO project refactoring
 TODO change button pictures
 TODO confirmation window on exit
 TODO camera permission if API < 26 (works on 26, maybe even lower, not 24 tho)

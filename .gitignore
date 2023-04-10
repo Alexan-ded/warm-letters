@@ -11,6 +11,8 @@ tmp/
 *.tmp
 *.bak
 *.log
+.DS_Store
+captures
 
 ################
 ### Intellij ###
