@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 
 import java.io.File;
 
@@ -23,18 +22,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
 // Background calculations can mess up with snackbar bruuuuuuuh
 // OnDestroy is not guaranteed to be called bruuuuuuuuuuuuuuuuh
 
-// сделайте фото или выберите из галереи
+/* TODO: todos here. Least -> most important
 
-// TODO server connection settings
-// TODO background tasks interruption in onPause
-// TODO implement callback when image sent to server instead of using AtomicBool
-// TODO package name
-// TODO project refactoring
-// TODO change button pictures
-// TODO confirmation window on exit
-// TODO camera permission if API < 28 (works on 28, maybe even lower, not 24 tho)
+TODO server connection settings
+TODO put colors to colors.xml
+TODO background tasks interruption in onPause
+TODO implement callback when image sent to server instead of using AtomicBool
+TODO package name
+TODO project refactoring
+TODO change button pictures
+TODO confirmation window on exit
+TODO camera permission if API < 26 (works on 26, maybe even lower, not 24 tho)
+TODO make minsdk 27 lol
 
-// TODO final animation
+TODO final animation
+
+ */
 
 public class MainActivity extends AppCompatActivity {
 
@@ -133,7 +136,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Log.e("FileDeletion", "Photo deleted");
         }
-
     }
 
     protected Uri createPhotoUri() {

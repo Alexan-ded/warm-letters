@@ -1,22 +1,110 @@
-Camera4/app/build
-Camera4/captures
-Camera4/.idea/shelf/
-Camera4/.idea/workspace.xml
-Camera4/.idea/deploymentTargetDropDown.xml
-Camera4/.idea/caches
-Camera4/.idea/libraries
-Camera4/.idea/modules.xml
-Camera4/.idea/workspace.xml
-Camera4/.idea/navEditor.xml
-Camera4/.idea/assetWizardSettings.xml
-Camera4/app/src/main/assets/config/config.yaml
-Camera4/*.iml
-Camera4/.gradle
-Camera4/local.properties
-Camera4/.externalNativeBuild
-Camera4/.cxx
-Camera4/local.properties
-
+# Image saved on the server
 server/image.jpg
 
-.DS_Store
+# Config
+app/src/main/assets/config/config.yaml
+
+##############
+### Common ###
+*~*
+tmp/
+*.tmp
+*.bak
+*.log
+
+################
+### Intellij ###
+# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio
+*.iml
+/out/
+
+#.idea/
+# if you remove the above rule, at least ignore the following:
+# User-specific stuff:
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+# Sensitive or high-churn files:
+.idea/dataSources.ids
+.idea/dataSources.xml
+.idea/sqlDataSources.xml
+.idea/dynamic.xml
+.idea/uiDesigner.xml
+
+# Gradle:
+# .idea/gradle.xml
+# .idea/libraries
+
+## File-based project format:
+*.ipr
+*.iws
+
+### Gradle ###
+.gradle
+build/
+gradle-app.setting
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+
+###############
+### Eclipse ###
+#.project
+*.pydevproject
+.metadata
+*.swp
+*~.nib
+.settings/
+.loadpath
+.externalToolBuilders/
+*.launch
+.cproject
+.classpath
+.factorypath
+.buildpath
+.target
+.texlipse
+
+############
+### Java ###
+*.class
+.mtj.tmp/
+*.jar
+*.war
+*.ear
+hs_err_pid*
+
+###############
+### Android ###
+# Built application files
+*.apk
+*.ap_
+
+# Files for the Dalvik VM
+*.dex
+
+# Generated files
+bin/
+gen/
+dist/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Proguard
+proguard/
+
+# Android Studio Stuff
+.navigation/
+gen-external-apklibs
+
+### Project ##
+app/src/main/res/raw/changelog.*
+app/src/main/res/raw/license.*
+app/src/main/res/raw/readme.*
+app/src/main/res/raw/contributors.*
+app/flavor*
+app/build/
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
