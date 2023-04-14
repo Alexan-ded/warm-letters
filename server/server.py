@@ -60,9 +60,15 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         print('Success')
 
+from os.path import abspath
+config_path = '../app/src/main/assets/config/config.yaml'
+try:
+    with open(config_path) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+except FileNotFoundError:
+    print(f"Error: config file {abspath(config_path)} not found.\nPlease add a config file")
+    exit()
 
-with open('../Camera4/app/src/main/assets/config/config.yaml') as f:
-    config = yaml.load(f, Loader=yaml.FullLoader)
 ip_address = config['ip_address']
 port = int(config['port'])
 
