@@ -4,13 +4,15 @@ import (
 	"image"
 	"image/color"
 	"os"
+	//"fmt"
 )
 
 func main () {
+	// fmt.Println(os.Args[1])
 	pal := color.Palette([]color.Color{
-		color.RGBA{0, 0, 0, 0},
-		color.RGBA{0xff, 0xff, 0xff, 0xff},
-		color.RGBA{0, 0, 0, 0xff},
+		color.RGBA{0, 0, 0, 0}, // Transparent
+		color.RGBA{0, 0, 0, 0xff}, // Black
+		color.RGBA{0xff, 0xff, 0xff, 0xff}, // White
 	})
 	// change this into reading bitmap from file
 	var circles [5000]image.Point
@@ -35,7 +37,7 @@ func main () {
 			im = image.NewPaletted(image.Rect(0, 0, w, h), pal)
 			for x := 0; x < w; x++ {
 				for y := 0; y < h; y++ {
-					im.Set(x, y, color.RGBA{0xff, 0xff, 0xff, 0xff})
+					im.Set(x, y, pal[2])
 				}
 			}
 		}
@@ -49,7 +51,7 @@ func main () {
 		am.Frames[i].DelayDenominator = 240
 
 		for j := 0; j < pixels_pf; j++ {
-			im.Set(circles[coun].X, circles[coun].Y, color.RGBA{R: 0, G: 0, B : 0, A: 0xff})
+			im.Set(circles[coun].X, circles[coun].Y, pal[1])
 			coun++
 		}
 	}
