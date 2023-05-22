@@ -8,9 +8,9 @@ import (
 
 func main () {
 	pal := color.Palette([]color.Color{
+		color.RGBA{0, 0, 0, 0},
 		color.RGBA{0xff, 0xff, 0xff, 0xff},
 		color.RGBA{0, 0, 0, 0xff},
-		color.RGBA{0, 0, 0, 0},
 	})
 	// change this into reading bitmap from file
 	var circles [5000]image.Point
@@ -22,7 +22,7 @@ func main () {
 	w, h := 1000, 1000
 	// change formula
 	pixels_pf := 5 // pixels per frame
-	am := APNG {
+	am := BEBR {
 		Frames: make([]Frame, 100),
 		LoopCount: 1,
 	}
