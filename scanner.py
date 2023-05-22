@@ -1,8 +1,10 @@
 from scipy.spatial import distance as dist
 import numpy as np
+import matplotlib.pyplot as plt
 import itertools
 import math
 import cv2
+from pylsd import lsd
 
 
 class Scanner(object):
@@ -12,13 +14,43 @@ class Scanner(object):
 
     def order_points(self, pts):
         xSorted = pts[np.argsort(pts[:, 0]), :]
+
         leftMost = xSorted[:2, :]
         rightMost = xSorted[2:, :]
+
         leftMost = leftMost[np.argsort(leftMost[:, 1]), :]
         (tl, bl) = leftMost
+
         D = dist.cdist(tl[np.newaxis], rightMost, "euclidean")[0]
         (br, tr) = rightMost[np.argsort(D)[::-1], :]
+
         return np.array([tl, tr, br, bl], dtype="float32")
+
+    def distance(self, a, b):
+        return np.sqrt(((a[0] - b[0]) ** 2) + ((a[1] - b[1]) ** 2))
+
+    def four_point_transform(self, image, pts):
+        corners = self.order_points(pts)
+        tl, tr, br, bl = corners
+
+        width_bottom = self.distance(br, bl)
+        width_top = self.distance(tr, tl)
+        new_width = max(int(width_top), int(width_bottom))
+
+        height_right = self.distance(tr, br)
+        height_left = self.distance(tl, bl)
+        new_height = max(int(height_right), int(height_left))
+
+        dst = np.array([
+            [0, 0],
+            [new_width - 1, 0],
+            [new_width - 1, new_height - 1],
+            [0, new_height - 1]], dtype="float32")
+
+        M = cv2.getPerspectiveTransform(corners, dst)
+        warped = cv2.warpPerspective(image, M, (new_width, new_height))
+
+        return warped
 
     def filter_corners(self, corners, min_dist=20):
         filtered_corners = []
@@ -102,7 +134,6 @@ class Scanner(object):
                 cv2.line(horizontal_lines_canvas, (min_x, y_for_min_x), (max_x, y_for_max_x), 1, 1)
                 corners.append((min_x, y_for_min_x))
                 corners.append((max_x, y_for_max_x))
-
             contours, hierarchy = cv2.findContours(vertical_lines_canvas, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
             contours = sorted(contours, key=lambda c: cv2.arcLength(c, True), reverse=True)[:2]
             vertical_lines_canvas = np.zeros(img.shape, dtype=np.uint8)
@@ -123,12 +154,14 @@ class Scanner(object):
                         cnt2 += 1
                 x_for_min_y /= cnt1
                 x_for_min_y = int(x_for_min_y)
+
                 x_for_max_y /= cnt2
                 x_for_max_y = int(x_for_max_y)
 
                 cv2.line(vertical_lines_canvas, (x_for_min_y, min_y), (x_for_max_y, max_y), 1, 1)
                 corners.append((x_for_min_y, min_y))
                 corners.append((x_for_max_y, max_y))
+
             corners_y, corners_x = np.where(horizontal_lines_canvas + vertical_lines_canvas == 2)
             corners += zip(corners_x, corners_y)
 
@@ -154,7 +187,9 @@ class Scanner(object):
 
         edged = cv2.Canny(dilated, 0, CANNY)
         test_corners = self.get_corners(edged)
+
         approx_contours = []
+
         if len(test_corners) >= 4:
             quads = []
             for quad in itertools.combinations(test_corners, 4):
@@ -164,6 +199,7 @@ class Scanner(object):
 
             quads = sorted(quads, key=cv2.contourArea, reverse=True)[:5]
             quads = sorted(quads, key=self.angle_range)
+
             approx = quads[0]
             if self.is_valid_contour(approx, IM_WIDTH, IM_HEIGHT):
                 approx_contours.append(approx)
@@ -171,10 +207,14 @@ class Scanner(object):
         cnts, hierarchy = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         cnts = sorted(cnts, key=cv2.contourArea, reverse=True)[:5]
 
+        # loop over the contours
         for c in cnts:
+            # approximate the contour
             perimeter = cv2.arcLength(c, True)
             approx = cv2.approxPolyDP(c, perimeter * 0.02, True)
             if self.is_valid_contour(approx, IM_WIDTH, IM_HEIGHT):
+                cv2.drawContours(rescaled_image, [approx], -1, (0, 0, 255), 1)
+
                 approx_contours.append(approx)
                 break
 
@@ -192,13 +232,22 @@ class Scanner(object):
 
     def scan(self, path):
         image = cv2.imread(path)
-        rescaled_image = cv2.resize(image, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
-        screenCnt = self.get_contour(rescaled_image)
-        cv2.drawContours(rescaled_image, [screenCnt], -1, (0, 255, 0), 3)
-        cv2.imshow("Outline", rescaled_image)
+        orig = image.copy()
+
+        # resizing
+        new_height = 1000
+        ratio = image.shape[0] / new_height
+        new_width = image.shape[1] / ratio
+        new_dim = (int(new_width), int(new_height))
+        rescaled_image = cv2.resize(image, new_dim, interpolation=cv2.INTER_AREA)
+
+        # get the contour of the document
+        paper_contours = self.get_contour(rescaled_image)
+        warped = self.four_point_transform(orig, paper_contours * ratio)
+        cv2.imshow("Outline", warped)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
 
 scanner = Scanner()
-scanner.scan("../IMG_3341.jpeg")  # путь к картинке сюда
+scanner.scan("../IMG_3342.jpeg")  # путь к картинке сюда
