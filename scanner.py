@@ -1,10 +1,8 @@
 from scipy.spatial import distance as dist
 import numpy as np
-import matplotlib.pyplot as plt
 import itertools
 import math
 import cv2
-from pylsd import lsd
 
 
 class Scanner(object):
@@ -77,11 +75,11 @@ class Scanner(object):
         return self.angle_between_vectors(avec, cvec)
 
     def angle_range(self, quad):
-        tl, tr, br, bl = quad
-        ura = self.get_angle(tl[0], tr[0], br[0])
-        ula = self.get_angle(bl[0], tl[0], tr[0])
-        lra = self.get_angle(tr[0], br[0], bl[0])
-        lla = self.get_angle(br[0], bl[0], tl[0])
+        tl, tr, br, bl = self.order_points(quad.reshape(4, 2))
+        ura = self.get_angle(tl, tr, br)
+        ula = self.get_angle(bl, tl, tr)
+        lra = self.get_angle(tr, br, bl)
+        lla = self.get_angle(br, bl, tl)
         angles = [ura, ula, lra, lla]
         return np.ptp(angles)
 
@@ -168,9 +166,21 @@ class Scanner(object):
         corners = self.filter_corners(corners)
         return corners
 
+    def diagonal_diff(self, cnt):
+        ordered_corners = self.order_points(cnt.reshape(4, 2))
+        tl, tr, br, bl = ordered_corners
+        diag1 = self.distance(tl, br)
+        diag2 = self.distance(bl, tr)
+        return abs(diag1 - diag2)
+
     def is_valid_contour(self, cnt, IM_WIDTH, IM_HEIGHT):
-        return (len(cnt) == 4 and cv2.contourArea(cnt) > IM_WIDTH * IM_HEIGHT * self.MIN_QUAD_AREA_RATIO
-                and self.angle_range(cnt) < self.MAX_QUAD_ANGLE_RANGE)
+        if len(cnt) != 4:
+            return False
+        if cv2.contourArea(cnt) <= IM_WIDTH * IM_HEIGHT * self.MIN_QUAD_AREA_RATIO:
+            return False
+        if self.angle_range(cnt) >= self.MAX_QUAD_ANGLE_RANGE:
+            return False
+        return True
 
     def get_contour(self, rescaled_image):
         MORPH = 9
@@ -191,18 +201,17 @@ class Scanner(object):
         approx_contours = []
 
         if len(test_corners) >= 4:
-            quads = []
+            valid_quads = []
             for quad in itertools.combinations(test_corners, 4):
                 points = self.order_points(np.array(quad))
                 points = np.array([[p] for p in points], dtype="int32")
-                quads.append(points)
+                if self.is_valid_contour(points, IM_WIDTH, IM_HEIGHT) is True:
+                    valid_quads.append(points)
 
-            quads = sorted(quads, key=cv2.contourArea, reverse=True)[:5]
-            quads = sorted(quads, key=self.angle_range)
+            valid_quads = sorted(valid_quads, key=cv2.contourArea, reverse=True)[:5]
+            valid_quads = sorted(valid_quads, key=self.diagonal_diff)
 
-            approx = quads[0]
-            if self.is_valid_contour(approx, IM_WIDTH, IM_HEIGHT):
-                approx_contours.append(approx)
+            approx_contours = [valid_quads[0]]
 
         cnts, hierarchy = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         cnts = sorted(cnts, key=cv2.contourArea, reverse=True)[:5]
@@ -214,7 +223,6 @@ class Scanner(object):
             approx = cv2.approxPolyDP(c, perimeter * 0.02, True)
             if self.is_valid_contour(approx, IM_WIDTH, IM_HEIGHT):
                 cv2.drawContours(rescaled_image, [approx], -1, (0, 0, 255), 1)
-
                 approx_contours.append(approx)
                 break
 
@@ -226,7 +234,7 @@ class Scanner(object):
             screenCnt = np.array([[TOP_RIGHT], [BOTTOM_RIGHT], [BOTTOM_LEFT], [TOP_LEFT]])
 
         else:
-            screenCnt = max(approx_contours, key=cv2.contourArea)
+            screenCnt = min(approx_contours, key=self.diagonal_diff)
 
         return screenCnt.reshape(4, 2)
 
@@ -235,19 +243,21 @@ class Scanner(object):
         orig = image.copy()
 
         # resizing
-        new_height = 1000
-        ratio = image.shape[0] / new_height
-        new_width = image.shape[1] / ratio
-        new_dim = (int(new_width), int(new_height))
-        rescaled_image = cv2.resize(image, new_dim, interpolation=cv2.INTER_AREA)
+        ratio = 2  # делаем картинку в два раза меньше
+        rescaled_image = cv2.resize(image, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
 
         # get the contour of the document
         paper_contours = self.get_contour(rescaled_image)
-        warped = self.four_point_transform(orig, paper_contours * ratio)
-        cv2.imshow("Outline", warped)
+
+        transformed = self.four_point_transform(orig, paper_contours * ratio)
+        #cv2.drawContours(rescaled_image, [paper_contours], -1, (0, 255, 0), 3)
+
+        #cv2.imshow("Outline", rescaled_image)
+
+        cv2.imshow("Outline", transformed)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
 
 scanner = Scanner()
-scanner.scan("../IMG_3342.jpeg")  # путь к картинке сюда
+scanner.scan("../IMG_3339.jpg")  # путь к картинке сюда
