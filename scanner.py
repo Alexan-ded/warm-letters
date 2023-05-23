@@ -6,9 +6,12 @@ import cv2
 
 
 class Scanner(object):
-    def __init__(self, interactive=False, MIN_QUAD_AREA_RATIO=0.2, MAX_QUAD_ANGLE_RANGE=40):
-        self.MIN_QUAD_AREA_RATIO = MIN_QUAD_AREA_RATIO
-        self.MAX_QUAD_ANGLE_RANGE = MAX_QUAD_ANGLE_RANGE
+    def __init__(self, interactive=False, min_area_ratio=0.2, max_angle_range=40, min_angle_value=82,
+                 max_angle_value=98):
+        self.MIN_QUAD_AREA_RATIO = min_area_ratio
+        self.MAX_QUAD_ANGLE_RANGE = max_angle_range
+        self.MIN_ANGLE_VALUE = min_angle_value
+        self.MAX_ANGLE_VALUE = max_angle_value
 
     def order_points(self, pts):
         xSorted = pts[np.argsort(pts[:, 0]), :]
@@ -66,13 +69,9 @@ class Scanner(object):
         return abs(np.degrees(radians))
 
     def get_angle(self, p1, p2, p3):
-        a = np.array(p1)
-        b = np.array(p2)
-        c = np.array(p3)
-
-        avec = a - b
-        cvec = c - b
-        return self.angle_between_vectors(avec, cvec)
+        vec_a = p1 - p2
+        vec_b = p3 - p2
+        return self.angle_between_vectors(vec_a, vec_b)
 
     def angle_range(self, quad):
         tl, tr, br, bl = self.order_points(quad.reshape(4, 2))
@@ -81,7 +80,7 @@ class Scanner(object):
         lra = self.get_angle(tr, br, bl)
         lla = self.get_angle(br, bl, tl)
         angles = [ura, ula, lra, lla]
-        return np.ptp(angles)
+        return angles
 
     def get_corners(self, img):
         line_detector = cv2.createLineSegmentDetector(0)
@@ -178,8 +177,10 @@ class Scanner(object):
             return False
         if cv2.contourArea(cnt) <= IM_WIDTH * IM_HEIGHT * self.MIN_QUAD_AREA_RATIO:
             return False
-        if self.angle_range(cnt) >= self.MAX_QUAD_ANGLE_RANGE:
-            return False
+        angles = self.angle_range(cnt)
+        for angle in angles:
+            if angle <= self.MIN_ANGLE_VALUE or angle >= self.MAX_ANGLE_VALUE:
+                return False
         return True
 
     def get_contour(self, rescaled_image):
@@ -196,6 +197,7 @@ class Scanner(object):
         dilated = cv2.morphologyEx(gray, cv2.MORPH_CLOSE, kernel)
 
         edged = cv2.Canny(dilated, 0, CANNY)
+
         test_corners = self.get_corners(edged)
 
         approx_contours = []
@@ -205,13 +207,15 @@ class Scanner(object):
             for quad in itertools.combinations(test_corners, 4):
                 points = self.order_points(np.array(quad))
                 points = np.array([[p] for p in points], dtype="int32")
+                cv2.drawContours(rescaled_image, [points], -1, (0, 0, 255), 1)
                 if self.is_valid_contour(points, IM_WIDTH, IM_HEIGHT) is True:
                     valid_quads.append(points)
 
             valid_quads = sorted(valid_quads, key=cv2.contourArea, reverse=True)[:5]
             valid_quads = sorted(valid_quads, key=self.diagonal_diff)
 
-            approx_contours = [valid_quads[0]]
+            if len(valid_quads) > 0:
+                approx_contours = [valid_quads[0]]
 
         cnts, hierarchy = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         cnts = sorted(cnts, key=cv2.contourArea, reverse=True)[:5]
@@ -221,6 +225,7 @@ class Scanner(object):
             # approximate the contour
             perimeter = cv2.arcLength(c, True)
             approx = cv2.approxPolyDP(c, perimeter * 0.02, True)
+            cv2.drawContours(rescaled_image, [approx], -1, (0, 0, 255), 1)
             if self.is_valid_contour(approx, IM_WIDTH, IM_HEIGHT):
                 cv2.drawContours(rescaled_image, [approx], -1, (0, 0, 255), 1)
                 approx_contours.append(approx)
@@ -249,10 +254,12 @@ class Scanner(object):
         # get the contour of the document
         paper_contours = self.get_contour(rescaled_image)
 
-        transformed = self.four_point_transform(orig, paper_contours * ratio)
-        #cv2.drawContours(rescaled_image, [paper_contours], -1, (0, 255, 0), 3)
+        print(self.angle_range(paper_contours))
 
-        #cv2.imshow("Outline", rescaled_image)
+        transformed = self.four_point_transform(orig, paper_contours * ratio)
+        # cv2.drawContours(rescaled_image, [paper_contours], -1, (0, 255, 0), 3)
+        # 
+        # cv2.imshow("Outline", rescaled_image)
 
         cv2.imshow("Outline", transformed)
         cv2.waitKey(0)
@@ -260,4 +267,4 @@ class Scanner(object):
 
 
 scanner = Scanner()
-scanner.scan("../IMG_3339.jpg")  # путь к картинке сюда
+scanner.scan("../IMG_3340.jpeg")  # путь к картинке сюда
