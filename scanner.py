@@ -3,6 +3,7 @@ import numpy as np
 import itertools
 import math
 import cv2
+import skimage.filters as filters
 
 
 class Scanner(object):
@@ -183,21 +184,19 @@ class Scanner(object):
                 return False
         return True
 
-    def get_contour(self, rescaled_image):
+    def get_contour(self, gray):
         MORPH = 9
         CANNY = 84
         HOUGH = 25
 
-        IM_HEIGHT, IM_WIDTH, _ = rescaled_image.shape
+        IM_HEIGHT, IM_WIDTH = gray.shape
 
-        gray = cv2.cvtColor(rescaled_image, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (7, 7), 0)
 
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (MORPH, MORPH))
         dilated = cv2.morphologyEx(gray, cv2.MORPH_CLOSE, kernel)
 
         edged = cv2.Canny(dilated, 0, CANNY)
-
         test_corners = self.get_corners(edged)
 
         approx_contours = []
@@ -207,8 +206,8 @@ class Scanner(object):
             for quad in itertools.combinations(test_corners, 4):
                 points = self.order_points(np.array(quad))
                 points = np.array([[p] for p in points], dtype="int32")
-                cv2.drawContours(rescaled_image, [points], -1, (0, 0, 255), 1)
                 if self.is_valid_contour(points, IM_WIDTH, IM_HEIGHT) is True:
+                    # cv2.drawContours(rescaled_image, [points], -1, (0, 0, 255), 5)
                     valid_quads.append(points)
 
             valid_quads = sorted(valid_quads, key=cv2.contourArea, reverse=True)[:5]
@@ -225,9 +224,9 @@ class Scanner(object):
             # approximate the contour
             perimeter = cv2.arcLength(c, True)
             approx = cv2.approxPolyDP(c, perimeter * 0.02, True)
-            cv2.drawContours(rescaled_image, [approx], -1, (0, 0, 255), 1)
+            #cv2.drawContours(rescaled_image, [approx], -1, (0, 0, 255), 1)
             if self.is_valid_contour(approx, IM_WIDTH, IM_HEIGHT):
-                cv2.drawContours(rescaled_image, [approx], -1, (0, 0, 255), 1)
+                # cv2.drawContours(rescaled_image, [approx], -1, (0, 0, 255), 5)
                 approx_contours.append(approx)
                 break
 
@@ -243,28 +242,44 @@ class Scanner(object):
 
         return screenCnt.reshape(4, 2)
 
-    def scan(self, path):
-        image = cv2.imread(path)
-        orig = image.copy()
+    def scan(self, image):
+        # grayscale
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         # resizing
         ratio = 2  # делаем картинку в два раза меньше
-        rescaled_image = cv2.resize(image, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+        rescaled_gray = cv2.resize(gray, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
 
         # get the contour of the document
-        paper_contours = self.get_contour(rescaled_image)
+        paper_contours = self.get_contour(rescaled_gray)
 
         print(self.angle_range(paper_contours))
 
-        transformed = self.four_point_transform(orig, paper_contours * ratio)
-        # cv2.drawContours(rescaled_image, [paper_contours], -1, (0, 255, 0), 3)
-        # 
-        # cv2.imshow("Outline", rescaled_image)
+        transformed = self.four_point_transform(gray, paper_contours * ratio)
+        # cv2.drawContours(rescaled_image, [paper_contours], -1, (0, 255, 0), 1)
 
-        cv2.imshow("Outline", transformed)
+        # blur
+        smooth = cv2.GaussianBlur(transformed, (95, 95), 0)
+
+        # divide gray by morphology image
+        division = cv2.divide(transformed, smooth, scale=255)
+
+        # sharpen using unsharp masking
+        # sharp = filters.unsharp_mask(division, radius=1.5, amount=1.5, channel_axis=False, preserve_range=False)
+        # sharp = (255 * sharp).clip(0, 255).astype(np.uint8)
+
+        # threshold
+        thresh = cv2.threshold(division, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
+        dilated = cv2.erode(thresh, kernel)
+
+
+        cv2.imshow("Outline", dilated)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
 
 scanner = Scanner()
-scanner.scan("../IMG_3340.jpeg")  # путь к картинке сюда
+image = cv2.imread("../ch.jpeg")
+scanner.scan(image)  # путь к картинке сюда
