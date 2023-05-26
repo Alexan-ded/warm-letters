@@ -65,7 +65,6 @@ public class ImageProcess {
                 connection.setRequestProperty("Content-Length", String.valueOf(imageBytes.length));
                 connection.setConnectTimeout(10_000);
                 connection.setReadTimeout(30_000);
-
                 OutputStream outputStream = connection.getOutputStream();
                 outputStream.write(imageBytes);
                 outputStream.flush();

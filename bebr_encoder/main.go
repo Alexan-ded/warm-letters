@@ -4,7 +4,6 @@ import (
 	"image"
 	"image/color"
 	"os"
-	//"fmt"
 )
 
 func main () {

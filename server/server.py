@@ -3,6 +3,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from io import BytesIO
 import cv2 as cv
 import numpy as np
+from scanner import Scanner
 import yaml
 
 from requests_toolbelt.multipart import decoder
@@ -38,24 +39,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         
         image_numpy = np.frombuffer(image_bytes, np.int8)
         im = cv.imdecode(image_numpy, cv.IMREAD_UNCHANGED)
-
-        # our machine start
-        imgray = cv.cvtColor(im, cv.COLOR_BGR2GRAY)
-        ret, thresh = cv.threshold(imgray, 127, 255, 0)
-        contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-
-        cv.drawContours(im, contours, -1, (0, 255, 0), 3)
-        #cv.imshow("bebra", im)
-        #cv.waitKey(0)
-        #cv.destroyAllWindows()
-        # our machine end
-        final_im = cv.imencode('.jpg', im)[1].tobytes()
-
-        with open("image.jpg", "wb") as f:
-            f.write(final_im)
-
-        sleep(4)
-        
+        scanner = Scanner()
+        inp = scanner.scan(im) # result from first block
         self.send_response(200)
         self.end_headers()
         print('Success')
