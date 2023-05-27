@@ -52,13 +52,14 @@ for i in range(len(dilation)):
                         meeted[new_i][new_j] = count_for_img
                         strs[new_i][new_j] = count_for_bfs
             
-            cropped = im[first_coord[0]:second_coord[0] + 1, first_coord[1]:second_coord[1] + 1]
+            cropped = imgray[first_coord[0]:second_coord[0] + 1, first_coord[1]:second_coord[1] + 1]
             for ii in range(len(cropped)): # в теории можно не чистить изображение
                 for jj in range(len(cropped[0])):
                     if (meeted[ii + first_coord[0]][jj + first_coord[1]] != count_for_img):
-                        cropped[ii][jj] = 0;
+                        cropped[ii][jj] = 0
+                    cropped[ii][jj] = 255 - cropped[ii][jj]
             strings.append(cropped)
-            cv.imwrite('img' + str(count_for_img) + '.jpg', cropped) # здесь и сохраняются картнки отдельных строк
+            cv.imwrite('img' + str(count_for_img) + '.png', cropped) # здесь и сохраняются картнки отдельных строк
             count_for_img += 1
 # strings - массив картинок с отдельными строками
             
