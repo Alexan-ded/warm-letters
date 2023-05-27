@@ -24,7 +24,7 @@ def separator(im):
             meeted[i].append(0)
 
     count_for_bfs = 100
-    count_for_img = 1
+    count_for_img = 0
     strings = []
     for i in range(len(dilation)):
         for j in range(len(dilation[0])):
@@ -61,7 +61,8 @@ def separator(im):
                             cropped[ii][jj] = 0
                 strings.append(cropped)
                 thresh = cv.threshold(cropped, 0, 255, cv.THRESH_BINARY_INV)[1]
-                cv.imwrite('photos/img' + str(count_for_img) + '.jpg',
-                           thresh)  # здесь и сохраняются картнки отдельных строк
                 count_for_img += 1
+                cv.imwrite('photos/img' + str(count_for_img) + '.png',
+                           thresh)  # здесь и сохраняются картнки отдельных строк
     # strings - массив картинок с отдельными строками
+    return count_for_img
