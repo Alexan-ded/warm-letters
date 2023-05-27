@@ -43,7 +43,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         scanner = Scanner()
         inp = scanner.scan(im) # result from first block
         out = preprocess_img(inp)
-        separator(out) # result from second block
+        img_counter = separator(out) # result from second block
         self.send_response(200)
         self.end_headers()
         print('Success')
