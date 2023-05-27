@@ -11,7 +11,7 @@ def separator(im):
 
     rect_kernel_for_erosion = cv.getStructuringElement(cv.MORPH_RECT, (1, 1))
     rect_kernel_for_dilation = cv.getStructuringElement(cv.MORPH_RECT, (
-        18, 1))  # здесь можно менять параметры в зависимости от рамзера текста и разрешения
+        15, 1))  # здесь можно менять параметры в зависимости от рамзера текста и разрешения
     erosion = cv.erode(imgray, rect_kernel_for_erosion, iterations=3)
     dilation = cv.dilate(imgray, rect_kernel_for_dilation, iterations=3)
     cv.imwrite("dilation.jpg", dilation)
@@ -40,9 +40,11 @@ def separator(im):
                 while not q.empty():
                     cur_i, cur_j = q.get()
                     for shift in [[0, -1], [1, 0], [-1, 0], [0, 1]]:
-                        new_i = max(0, min(len(dilation) - 1, shift[0] + cur_i))
-                        new_j = max(0, min(len(dilation[0]) - 1, shift[1] + cur_j))
-                        if int(dilation[new_i][new_j]) == 255 and meeted[new_i][new_j] == 0:
+                        new_i = max(
+                            0, min(len(dilation) - 1, shift[0] + cur_i))
+                        new_j = max(
+                            0, min(len(dilation[0]) - 1, shift[1] + cur_j))
+                        if int(dilation[new_i][new_j]) >= 50 and meeted[new_i][new_j] == 0:
                             if first_coord[0] > new_i:
                                 first_coord[0] = new_i
                             if first_coord[1] > new_j:
@@ -55,14 +57,17 @@ def separator(im):
                             meeted[new_i][new_j] = count_for_img
                             strs[new_i][new_j] = count_for_bfs
 
-                cropped = im[first_coord[0]:second_coord[0] + 1, first_coord[1]:second_coord[1] + 1]
+                cropped = copy.deepcopy(
+                    im[first_coord[0]:second_coord[0] + 1, first_coord[1]:second_coord[1] + 1])
                 strings_order.append((first_coord[0], first_coord[1]))
                 for ii in range(len(cropped)):  # в теории можно не чистить изображение
                     for jj in range(len(cropped[0])):
                         if meeted[ii + first_coord[0]][jj + first_coord[1]] != count_for_img:
                             cropped[ii][jj] = 0
                 strings.append(cropped)
-                thresh = cv.threshold(cropped, 0, 255, cv.THRESH_BINARY_INV)[1]
+                # можно поиграться с параметрами, косвенно влияет на ширину текста
+                thresh = cv.threshold(
+                    cropped, 200, 255, cv.THRESH_BINARY_INV)[1]
                 cv.imwrite('photos/img' + str(count_for_img) + '.png',
                            thresh)  # здесь и сохраняются картнки отдельных строк
                 count_for_img += 1
