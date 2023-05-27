@@ -1,8 +1,5 @@
 # Image saved on the server
 server/image.jpg
-server/photos
-server/rgb.png
-server/dilation.jpg
 
 # Config
 app/src/main/assets/config/config.yaml
