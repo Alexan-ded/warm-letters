@@ -262,7 +262,8 @@ class Scanner(object):
 
         return transformed
 
-#возвращает инверснутое бинарное изображение
+
+# возвращает инверснутое бинарное изображение
 def preprocess_img(transformed):  # getting already grayscale
     GAUSS = 95
     KERNEL_SIZE = 3
@@ -301,11 +302,11 @@ def preprocess_img(transformed):  # getting already grayscale
     return dilated
 
 
-image = cv2.imread("../IMG_3341.jpeg")
-scanner = Scanner()
-trans = scanner.scan(image)
-process = preprocess_img(trans)
-
-cv2.imshow("lol", process)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# image = cv2.imread("../IMG_3341.jpeg")
+# scanner = Scanner()
+# trans = scanner.scan(image)
+# process = preprocess_img(trans)
+#
+# cv2.imshow("lol", process)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()
