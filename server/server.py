@@ -3,7 +3,8 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from io import BytesIO
 import cv2 as cv
 import numpy as np
-from scanner import Scanner
+from preprocessor import Scanner, preprocess_img
+from strings_seperation import separator
 import yaml
 
 from requests_toolbelt.multipart import decoder
@@ -41,6 +42,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         im = cv.imdecode(image_numpy, cv.IMREAD_UNCHANGED)
         scanner = Scanner()
         inp = scanner.scan(im) # result from first block
+        out = preprocess_img(inp)
+        separator(out) # result from second block
         self.send_response(200)
         self.end_headers()
         print('Success')
