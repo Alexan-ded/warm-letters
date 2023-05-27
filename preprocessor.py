@@ -262,7 +262,7 @@ class Scanner(object):
 
         return transformed
 
-
+#возвращает инверснутое бинарное изображение
 def preprocess_img(transformed):  # getting already grayscale
     GAUSS = 95
     KERNEL_SIZE = 3
@@ -284,5 +284,28 @@ def preprocess_img(transformed):  # getting already grayscale
     kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (KERNEL_SIZE, KERNEL_SIZE))
     # closed = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
     dilated = cv2.dilate(thresh, kernel, iterations=1)
+    h, w = dilated.shape[:2]
+    mask = np.zeros((h + 2, w + 2), np.uint8)
+    for x in range(dilated.shape[1]):
+        if dilated[0][x] == 255:
+            cv2.floodFill(dilated, mask, (x, 0), 0)
+        if dilated[dilated.shape[0] - 1][x] == 255:
+            cv2.floodFill(dilated, mask, (x, dilated.shape[0] - 1), 0)
+
+    for y in range(dilated.shape[0]):
+        if dilated[y][0] == 255:
+            cv2.floodFill(dilated, mask, (0, y), 0)
+        if dilated[y][dilated.shape[1] - 1] == 255:
+            cv2.floodFill(dilated, mask, (dilated.shape[1] - 1, y), 0)
 
     return dilated
+
+
+image = cv2.imread("../IMG_3341.jpeg")
+scanner = Scanner()
+trans = scanner.scan(image)
+process = preprocess_img(trans)
+
+cv2.imshow("lol", process)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
