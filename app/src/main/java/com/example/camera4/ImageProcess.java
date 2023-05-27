@@ -71,15 +71,6 @@ public class ImageProcess {
                 outputStream.close();
                 int responseCode = connection.getResponseCode();
                 if (responseCode == HttpURLConnection.HTTP_OK) {
-
-//                    for (int ii = 0; ii < 5; ++ii) {
-//                        Vector<Long> time_consuming_vector = new Vector<Long>();
-//                        for (long i = 0; i < 100_000_000; ++i) {
-//                            time_consuming_vector.add(i);
-//                            time_consuming_vector.clear();
-//                        }
-//                    }
-
                     showSnackBar("Image sent to server for processing");
                 } else {
                     Log.e("Response Error", "Failed with response code: " + responseCode);
@@ -150,7 +141,7 @@ public class ImageProcess {
             properties.load(new InputStreamReader(input));
         } catch (IOException e) {
             e.printStackTrace();
-            showSnackBar("config error");
+            showSnackBar("Error: Missing config");
             throw new RuntimeException("Missing config");
         }
         return "http://"
