@@ -1,15 +1,14 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
-
 from io import BytesIO
-import cv2 as cv
-import numpy as np
 from preprocessor import Scanner, preprocess_img
 from strings_seperation import separator
-import yaml
-
 from requests_toolbelt.multipart import decoder
-
 from time import sleep
+
+import cv2 as cv
+import numpy as np
+import yaml
+import subprocess
 
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -44,6 +43,15 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         inp = scanner.scan(im) # result from first block
         out = preprocess_img(inp)
         img_counter = separator(out) # result from second block
+
+        jar_path = './java_exec.jar'
+        process = subprocess.Popen(['java', '-jar', jar_path, str(img_counter)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        output = stdout.decode('utf-8')
+        number_list = [int(num) for num in output.split()]
+        point_list = [number_list[i:i+2] for i in range(0, len(number_list), 2)]
+        print(point_list[:100])
+        
         self.send_response(200)
         self.end_headers()
         print('Success')
