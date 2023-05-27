@@ -3,15 +3,16 @@ import queue
 import cv2 as cv
 
 
-im = cv.imread('img.jpg')
+im = cv.imread('lol.jpg')
 imgray = cv.cvtColor(im, cv.COLOR_BGR2GRAY)
-ret, thresh = cv.threshold(imgray, 0, 255, cv.THRESH_OTSU |
-                                          cv.THRESH_BINARY_INV) 
+'''ret, thresh = cv.threshold(imgray, 0, 255, cv.THRESH_OTSU |
+                                          cv.THRESH_BINARY_INV) '''
 
 rect_kernel_for_erosion = cv.getStructuringElement(cv.MORPH_RECT, (1, 1))
 rect_kernel_for_dilation = cv.getStructuringElement(cv.MORPH_RECT, (18, 1)) # здесь можно менять параметры в зависимости от рамзера текста и разрешения
-erosion =  cv.erode(thresh, rect_kernel_for_erosion, iterations = 3)
-dilation = cv.dilate(thresh, rect_kernel_for_dilation, iterations = 3)
+erosion =  cv.erode(imgray, rect_kernel_for_erosion, iterations = 3)
+dilation = cv.dilate(imgray, rect_kernel_for_dilation, iterations = 3)
+cv.imwrite("dilation.jpg", dilation)
 
 strs = copy.deepcopy(dilation)
 meeted = []
@@ -55,7 +56,7 @@ for i in range(len(dilation)):
             for ii in range(len(cropped)): # в теории можно не чистить изображение
                 for jj in range(len(cropped[0])):
                     if (meeted[ii + first_coord[0]][jj + first_coord[1]] != count_for_img):
-                        cropped[ii][jj] = 255;
+                        cropped[ii][jj] = 0;
             strings.append(cropped)
             cv.imwrite('img' + str(count_for_img) + '.jpg', cropped) # здесь и сохраняются картнки отдельных строк
             count_for_img += 1
