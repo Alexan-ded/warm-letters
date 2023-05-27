@@ -1,5 +1,9 @@
 # Image saved on the server
 server/image.jpg
+server/photos
+server/rgb.png
+server/dilation.jpg
+bebr_encoder/rgb.png
 
 # Config
 app/src/main/assets/config/config.yaml
