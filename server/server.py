@@ -42,7 +42,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         scanner = Scanner()
         inp = scanner.scan(im) # result from first block
         out = preprocess_img(inp)
-        img_counter = separator(out) # result from second block
+        strings_order = separator(out) # result from second block 
+        img_counter = len(strings_order)
 
         jar_path = './java_exec.jar'
         process = subprocess.Popen(['java', '-jar', jar_path, str(img_counter)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)

@@ -26,6 +26,7 @@ def separator(im):
     count_for_bfs = 100
     count_for_img = 1
     strings = []
+    strings_order = []
     for i in range(len(dilation)):
         for j in range(len(dilation[0])):
             if int(dilation[i][j]) == 255 and meeted[i][j] == 0:
@@ -55,6 +56,7 @@ def separator(im):
                             strs[new_i][new_j] = count_for_bfs
 
                 cropped = im[first_coord[0]:second_coord[0] + 1, first_coord[1]:second_coord[1] + 1]
+                strings_order.append((first_coord[0], first_coord[1]))
                 for ii in range(len(cropped)):  # в теории можно не чистить изображение
                     for jj in range(len(cropped[0])):
                         if meeted[ii + first_coord[0]][jj + first_coord[1]] != count_for_img:
@@ -65,4 +67,4 @@ def separator(im):
                            thresh)  # здесь и сохраняются картнки отдельных строк
                 count_for_img += 1
     # strings - массив картинок с отдельными строками
-    return count_for_img - 1
+    return strings_order
