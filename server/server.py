@@ -1,15 +1,17 @@
+import cv2 as cv
+import numpy as np
+import yaml
+import subprocess
+import ctypes
+import platform
+
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from io import BytesIO
 from preprocessor import Scanner, preprocess_img
 from strings_seperation import separator
 from requests_toolbelt.multipart import decoder
 from time import sleep
-
-import cv2 as cv
-import numpy as np
-import yaml
-import subprocess
-import ctypes
+from pathlib import Path
 
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -43,21 +45,25 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         im = cv.imdecode(image_numpy, cv.IMREAD_UNCHANGED)
         scanner = Scanner()
         inp = scanner.scan(im)  # result from first block
+        
+        Path("./photos").mkdir(exist_ok=True)
         out = preprocess_img(inp)
-        strings_order = separator(out) # result from second block 
-        img_counter = len(strings_order)
+        lines_pos = separator(out) # result from second block
 
         height, width = out.shape[:2]
-        jar_path = './java_exec.jar'
-        process = subprocess.Popen(['java', '-jar', jar_path, str(img_counter)],
+        jar_path = './stroke_extraction/target/stroke_extraction.jar'
+        params = [str(elem) for elem in lines_pos]
+        process = subprocess.Popen(['java', '-jar', jar_path] + params,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
-        output = stdout.decode('utf-8')
-        number_list = [int(num) for num in output.split()]
+        number_list = [int(num) for num in stdout.split()]
         point_list = [number_list[i:i + 2] for i in range(0, len(number_list), 2)]
-
-        lib = ctypes.CDLL('../bebr_encoder/main.so')
+        
+        if platform.system() == "Windows":
+            lib = ctypes.CDLL('../bebr_encoder/main.dll')
+        else:
+            lib = ctypes.CDLL('../bebr_encoder/main.so')
 
         lib.file_creator.argtypes = (ctypes.POINTER(ctypes.c_int),
                                       ctypes.c_int, ctypes.c_int, ctypes.c_int)

@@ -1,4 +1,4 @@
-package com.example.camera4;
+package com.example.warm_letters;
 
 import android.view.View;
 

@@ -1,4 +1,4 @@
-package com.example.camera4;
+package com.example.warm_letters;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -64,14 +64,15 @@ public class ImageProcess {
                 connection.setRequestProperty("Content-Type", "image/jpeg");
                 connection.setRequestProperty("Content-Length", String.valueOf(imageBytes.length));
                 connection.setConnectTimeout(10_000);
-                connection.setReadTimeout(30_000);
+                connection.setReadTimeout(60_000);
                 OutputStream outputStream = connection.getOutputStream();
                 outputStream.write(imageBytes);
                 outputStream.flush();
+                showSnackBar("Image sent to server for processing");
                 outputStream.close();
                 int responseCode = connection.getResponseCode();
                 if (responseCode == HttpURLConnection.HTTP_OK) {
-                    showSnackBar("Image sent to server for processing");
+                    showSnackBar("You should open apng... NOW!");
                 } else {
                     Log.e("Response Error", "Failed with response code: " + responseCode);
                     showSnackBar("Error: Wrong response code");

@@ -20,7 +20,7 @@
         android:icon="@android:drawable/ic_menu_camera"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Camera4"
+        android:theme="@style/Theme.warm_letters"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity

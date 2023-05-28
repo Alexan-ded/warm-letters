@@ -1,4 +1,4 @@
-# Image saved on the server
+# Server
 server/image.jpg
 server/photos
 server/rgb.png
@@ -17,6 +17,7 @@ tmp/
 *.log
 .DS_Store
 captures
+go.mod
 
 ################
 ### Intellij ###
@@ -76,6 +77,7 @@ gradle-app.setting
 *.class
 .mtj.tmp/
 *.jar
+!server/stroke_extraction/target/stroke_extraction.jar
 *.war
 *.ear
 hs_err_pid*
