@@ -3,6 +3,7 @@ server/image.jpg
 server/photos
 server/rgb.png
 server/dilation.jpg
+server/__pycache__
 bebr_encoder/rgb.png
 
 # Config

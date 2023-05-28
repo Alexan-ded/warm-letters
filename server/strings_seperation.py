@@ -11,10 +11,10 @@ def separator(im):
 
     rect_kernel_for_erosion = cv.getStructuringElement(cv.MORPH_RECT, (1, 1))
     rect_kernel_for_dilation = cv.getStructuringElement(cv.MORPH_RECT, (
-        68, 1))  # здесь можно менять параметры в зависимости от рамзера текста и разрешения
+        100, 1))  # здесь можно менять параметры в зависимости от рамзера текста и разрешения
     erosion = cv.erode(imgray, rect_kernel_for_erosion, iterations=3)
     dilation = cv.dilate(imgray, rect_kernel_for_dilation, iterations=3)
-    # cv.imwrite("dilation.jpg", dilation)
+    cv.imwrite("dilation.jpg", dilation)
 
     strs = copy.deepcopy(dilation)
     meeted = []
