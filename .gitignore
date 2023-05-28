@@ -1,8 +1,9 @@
-# Image saved on the server
+# Server
 server/image.jpg
 server/photos
 server/rgb.png
 server/dilation.jpg
+server/__pycache__
 
 # Config
 app/src/main/assets/config/config.yaml
@@ -16,6 +17,7 @@ tmp/
 *.log
 .DS_Store
 captures
+go.mod
 
 ################
 ### Intellij ###
@@ -75,6 +77,7 @@ gradle-app.setting
 *.class
 .mtj.tmp/
 *.jar
+!server/stroke_extraction/target/stroke_extraction.jar
 *.war
 *.ear
 hs_err_pid*

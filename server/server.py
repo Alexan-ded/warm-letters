@@ -11,6 +11,7 @@ from preprocessor import Scanner, preprocess_img
 from strings_seperation import separator
 from requests_toolbelt.multipart import decoder
 from time import sleep
+from pathlib import Path
 
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -44,13 +45,14 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         im = cv.imdecode(image_numpy, cv.IMREAD_UNCHANGED)
         scanner = Scanner()
         inp = scanner.scan(im)  # result from first block
+        
+        Path("./photos").mkdir(exist_ok=True)
         out = preprocess_img(inp)
-        lines_pos_y_x = separator(out) # result from second block
+        lines_pos = separator(out) # result from second block
 
         height, width = out.shape[:2]
-        jar_path = './java_exec/target/stroke_extraction.jar'
-        lines_pos_x_y = [(i[1], i[0]) for i in lines_pos_y_x]
-        params = [str(i) for s in lines_pos_x_y for i in s]
+        jar_path = './stroke_extraction/target/stroke_extraction.jar'
+        params = [str(elem) for elem in lines_pos]
         process = subprocess.Popen(['java', '-jar', jar_path] + params,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
