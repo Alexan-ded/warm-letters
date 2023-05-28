@@ -48,7 +48,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         lines_pos_y_x = separator(out) # result from second block
 
         height, width = out.shape[:2]
-        jar_path = './java_exec/target/java_exec.jar'
+        jar_path = './java_exec/target/stroke_extraction.jar'
         lines_pos_x_y = [(i[1], i[0]) for i in lines_pos_y_x]
         params = [str(i) for s in lines_pos_x_y for i in s]
         process = subprocess.Popen(['java', '-jar', jar_path] + params,
