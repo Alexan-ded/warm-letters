@@ -6,6 +6,19 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+  <TextView
+      android:id="@+id/mainText"
+      android:layout_width="374dp"
+      android:layout_height="56dp"
+      android:layout_marginTop="350dp"
+      android:contentDescription="@string/main_text"
+      android:gravity="center"
+      android:text="@string/main_text"
+      android:textSize="20sp"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintHorizontal_bias="0.485"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
   <ImageButton
       android:id="@+id/cameraButton"
       android:layout_width="75dp"
@@ -16,7 +29,7 @@
       android:contentDescription="@string/camera_button"
       android:title="@string/camera_button"
       app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toBottomOf="@+id/pictureReceived"
+      app:layout_constraintTop_toBottomOf="@+id/mainText"
       app:srcCompat="@android:drawable/ic_menu_camera"
       tools:visibility="visible" />
   <ImageButton
@@ -28,22 +41,8 @@
       android:background="@drawable/button_background"
       android:contentDescription="@string/gallery_button"
       app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintTop_toBottomOf="@+id/pictureReceived"
+      app:layout_constraintTop_toBottomOf="@+id/mainText"
       app:srcCompat="@android:drawable/ic_menu_gallery"
       tools:visibility="visible" />
-
-  <TextView
-      android:id="@+id/pictureReceived"
-      android:layout_width="374dp"
-      android:layout_height="56dp"
-      android:layout_marginTop="320dp"
-      android:contentDescription="@string/server_received_image"
-      android:gravity="center"
-      android:text="@string/main_text"
-      android:textSize="20sp"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintHorizontal_bias="0.485"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -11,7 +11,7 @@ def separator(im):
 
     rect_kernel_for_erosion = cv.getStructuringElement(cv.MORPH_RECT, (1, 1))
     rect_kernel_for_dilation = cv.getStructuringElement(cv.MORPH_RECT, (
-        15, 1))  # здесь можно менять параметры в зависимости от рамзера текста и разрешения
+        68, 1))  # здесь можно менять параметры в зависимости от рамзера текста и разрешения
     erosion = cv.erode(imgray, rect_kernel_for_erosion, iterations=3)
     dilation = cv.dilate(imgray, rect_kernel_for_dilation, iterations=3)
     # cv.imwrite("dilation.jpg", dilation)
@@ -26,7 +26,7 @@ def separator(im):
     count_for_bfs = 100
     count_for_img = 1
     strings = []
-    line_pos = []
+    lines_pos = []
     for i in range(len(dilation)):
         for j in range(len(dilation[0])):
             if int(dilation[i][j]) == 255 and meeted[i][j] == 0:
@@ -59,8 +59,8 @@ def separator(im):
 
                 cropped = copy.deepcopy(
                     im[first_coord[0]:second_coord[0] + 1, first_coord[1]:second_coord[1] + 1])
-                line_pos.append(first_coord[1])
-                line_pos.append(first_coord[0])
+                lines_pos.append(first_coord[1])
+                lines_pos.append(first_coord[0])
                 for ii in range(len(cropped)):  # в теории можно не чистить изображение
                     for jj in range(len(cropped[0])):
                         if meeted[ii + first_coord[0]][jj + first_coord[1]] != count_for_img:
@@ -73,4 +73,4 @@ def separator(im):
                            thresh)  # здесь и сохраняются картнки отдельных строк
                 count_for_img += 1
     # strings - массив картинок с отдельными строками
-    return line_pos
+    return lines_pos

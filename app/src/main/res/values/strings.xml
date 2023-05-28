@@ -2,6 +2,7 @@
     <string name="app_name">Warm Letters</string>
     <string name="camera_button">Take a picture</string>
     <string name="gallery_button">Pick an image from gallery</string>
-    <string name="server_received_image">TODO</string>
     <string name="main_text">Take a picture or choose from gallery:</string>
+    <string name="handwriting_animation">Handwriting animation</string>
+    <string name="share_button">Share</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.example.warm_letters;
 
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
@@ -13,10 +14,12 @@ import android.os.Environment;
 import android.view.View;
 import android.widget.ImageButton;
 
+import com.github.penfeizhou.animation.apng.APNGDrawable;
 import java.io.File;
 
 import android.util.Log;
 
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // Background calculations can mess up the snackbar bruuuuuuuh
@@ -43,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     protected View mainView;
     protected ImageButton cameraButton;
     protected ImageButton galleryButton;
-    protected TextView pictureReceived;
+    protected TextView mainText;
     protected ActivityResultLauncher<Uri> cameraResultLauncher;
     protected ActivityResultLauncher<PickVisualMediaRequest> photoPickerResultLauncher;
     protected Uri photoUri = null;
@@ -58,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         mainView = findViewById(android.R.id.content);
         cameraButton = findViewById(R.id.cameraButton);
         galleryButton = findViewById(R.id.galleryButton);
-        pictureReceived = findViewById(R.id.pictureReceived);
+        mainText = findViewById(R.id.mainText);
 
         cameraButton.setOnClickListener(view -> {
             if (!isImageSent.get()) {
@@ -69,7 +72,6 @@ public class MainActivity extends AppCompatActivity {
             if (photoUri == null) {
                 photoUri = createPhotoUri();
             }
-            // TODO wait here for previous rotateBitmap() to complete to delete temp photo
             cameraResultLauncher.launch(photoUri);
         });
 
@@ -85,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
                         );
                         imageProcess.processImage();
                         // TODO callback when the data from the server is retrieved
+                        // TODO ShowActivity on callback
                         // TODO also delete temp photo here
                     } else {
                         showSnackBar("No photo taken");
@@ -116,7 +119,6 @@ public class MainActivity extends AppCompatActivity {
                                 uri
                         );
                         imageProcess.processImage();
-
                         // TODO callback when the data from the server is retrieved
                     } else {
                         Log.d("PhotoPicker", "No media selected");

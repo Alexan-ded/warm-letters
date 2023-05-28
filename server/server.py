@@ -58,6 +58,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                                    stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
         number_list = [int(num) for num in stdout.split()]
+        point_list = [number_list[i:i + 2] for i in range(0, len(number_list), 2)]
         
         if platform.system() == "Windows":
             lib = ctypes.CDLL('../bebr_encoder/main.dll')
@@ -69,9 +70,27 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         c_point_list = (ctypes.c_int * len(number_list))(*number_list)
         lib.file_creator(c_point_list, len(number_list), height, width)
 
+        #self.send_response(200)
+        #self.end_headers()
+        #print('Success')
+        
         self.send_response(200)
+
+        # Set the Content-Type header to indicate it's a PNG image
+        self.send_header("Content-type", "image/png")
+
+        # Read the PNG image file
+        with open("rgb.png", "rb") as file:
+            image_data = file.read()
+
+        # Set the Content-Length header
+        self.send_header("Content-Length", str(len(image_data)))
+
+        # End the headers
         self.end_headers()
-        print('Success')
+
+        # Send the image data in the response body
+        self.wfile.write(image_data)
 
 
 from os.path import abspath

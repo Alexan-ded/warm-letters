@@ -1,16 +1,22 @@
 package com.example.warm_letters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 
+import android.widget.ImageView;
 import androidx.exifinterface.media.ExifInterface;
 
+import com.github.penfeizhou.animation.apng.APNGDrawable;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -72,7 +78,25 @@ public class ImageProcess {
                 outputStream.close();
                 int responseCode = connection.getResponseCode();
                 if (responseCode == HttpURLConnection.HTTP_OK) {
-                    showSnackBar("You should open apng... NOW!");
+                    showSnackBar("You should show apng... NOW!");
+
+                    File mediaStorageDir = context.getExternalFilesDir(
+                            Environment.DIRECTORY_PICTURES);
+                    File file = new File(mediaStorageDir, "animation.png");
+
+                    FileOutputStream imageStream = new FileOutputStream(file);
+                    InputStream inputStream = connection.getInputStream();
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        imageStream.write(buffer, 0, bytesRead);
+                    }
+                    imageStream.close();
+                    inputStream.close();
+
+                    Intent intent = new Intent(context, ShowAnimation.class);
+                    intent.putExtra("file", file);
+                    context.startActivity(intent);
                 } else {
                     Log.e("Response Error", "Failed with response code: " + responseCode);
                     showSnackBar("Error: Wrong response code");
@@ -88,6 +112,7 @@ public class ImageProcess {
                     connection.disconnect();
                 }
                 isImageSent.set(true);
+                // get out of here
             }
         }).start();
     }
