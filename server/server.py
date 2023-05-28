@@ -58,7 +58,6 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                                    stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
         number_list = [int(num) for num in stdout.split()]
-        point_list = [number_list[i:i + 2] for i in range(0, len(number_list), 2)]
         
         if platform.system() == "Windows":
             lib = ctypes.CDLL('../bebr_encoder/main.dll')

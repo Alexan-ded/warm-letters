@@ -2,5 +2,5 @@
 # Example:
 # ip_address: 192.168.0.1
 # port: 8000
-ip_address: 10.110.184.74
+ip_address: 192.168.1.39
 port: 8080
