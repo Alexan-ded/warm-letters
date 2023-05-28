@@ -1,4 +1,4 @@
-package com.example.camera4;
+package com.example.warm_letters;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.example.camera4", appContext.getPackageName());
+        assertEquals("com.example.warm_letters", appContext.getPackageName());
     }
 }

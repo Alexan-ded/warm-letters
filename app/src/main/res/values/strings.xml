@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Camera4</string>
+    <string name="app_name">Warm Letters</string>
     <string name="camera_button">Take a picture</string>
     <string name="gallery_button">Pick an image from gallery</string>
     <string name="server_received_image">TODO</string>

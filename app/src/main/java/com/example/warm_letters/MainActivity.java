@@ -1,4 +1,4 @@
-package com.example.camera4;
+package com.example.warm_letters;
 
 import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
@@ -19,8 +19,8 @@ import android.util.Log;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-// Background calculations can mess up with snackbar bruuuuuuuh
-// OnDestroy is not guaranteed to be called bruuuuuuuuuuuuuuuuh
+// Background calculations can mess up the snackbar bruuuuuuuh
+// OnDestroy is not guaranteed to be called bruuuuuuuuuuuuuuuh
 
 /* TODO: todos here. Least -> most important
 
@@ -62,14 +62,14 @@ public class MainActivity extends AppCompatActivity {
 
         cameraButton.setOnClickListener(view -> {
             if (!isImageSent.get()) {
-                showSnackBar("зачилься другалёк, картинка отправляется");
+                showSnackBar("Image is still being processed");
                 return;
             }
             isImageSent.set(false);
             if (photoUri == null) {
                 photoUri = createPhotoUri();
             }
-            // TODO wait here for previous rotateBitmap() to complete?
+            // TODO wait here for previous rotateBitmap() to complete to delete temp photo
             cameraResultLauncher.launch(photoUri);
         });
 
@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
 
         galleryButton.setOnClickListener(view -> {
             if (!isImageSent.get()) {
-                showSnackBar("зачилься другалёк, картинка отправляется");
+                showSnackBar("Image is still being processed");
                 return;
             }
             isImageSent.set(false);
@@ -129,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e("onDestroy", "onDestroy is called");
         if (getContentResolver().delete(photoUri, null, null) == 0) {
             Log.e("FileDeletion", "Failed to delete photo");
         } else {
