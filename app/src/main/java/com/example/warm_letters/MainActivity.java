@@ -36,8 +36,7 @@ TODO confirmation window on exit
 TODO camera permission if API < 26 (works on 26, maybe even lower, not 24 tho)
 TODO make minsdk 27 lol
 
-TODO back button
-TODO open with button
+TODO handle phone rotation
 
  */
 

@@ -40,7 +40,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         else:
             print("Error: content_type is not recognized")
             exit()
-
+        
+        print("Begin image processing")
         image_numpy = np.frombuffer(image_bytes, np.int8)
         im = cv.imdecode(image_numpy, cv.IMREAD_UNCHANGED)
         scanner = Scanner()
@@ -69,28 +70,18 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                                       ctypes.c_int, ctypes.c_int, ctypes.c_int)
         c_point_list = (ctypes.c_int * len(number_list))(*number_list)
         lib.file_creator(c_point_list, len(number_list), height, width)
-
-        #self.send_response(200)
-        #self.end_headers()
-        #print('Success')
         
         self.send_response(200)
 
-        # Set the Content-Type header to indicate it's a PNG image
         self.send_header("Content-type", "image/png")
-
-        # Read the PNG image file
         with open("rgb.png", "rb") as file:
             image_data = file.read()
-
-        # Set the Content-Length header
+        
         self.send_header("Content-Length", str(len(image_data)))
-
-        # End the headers
         self.end_headers()
-
-        # Send the image data in the response body
         self.wfile.write(image_data)
+
+        print("Success")
 
 
 from os.path import abspath

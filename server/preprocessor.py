@@ -201,7 +201,7 @@ class Scanner(object):
 
         edged = cv2.Canny(dilated, 0, CANNY)
         test_corners = self.get_corners(edged)
-        print(test_corners)
+        # print(test_corners)
         approx_contours = []
         valid_quads = []
 
@@ -211,7 +211,7 @@ class Scanner(object):
                 points = np.array([[p] for p in points], dtype="int32")
 
                 cv2.drawContours(rescaled_image, [points], -1, (0, 0, 255), 7)
-                print(self.angle_range(points))
+                # print(self.angle_range(points))
 
                 if self.is_valid_contour(points, IM_WIDTH, IM_HEIGHT) is True:
                     valid_quads.append(points)
