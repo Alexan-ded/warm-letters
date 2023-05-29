@@ -30,11 +30,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 TODO server connection settings
 TODO put colors to colors.xml
 TODO background tasks interruption in onPause
-TODO implement callback when image sent to server instead of using AtomicBool
 TODO change button pictures
-TODO confirmation window on exit
-TODO camera permission if API < 26 (works on 26, maybe even lower, not 24 tho)
-TODO make minsdk 27 lol
+TODO implement callback when image sent to server instead of using AtomicBool
 
 TODO handle phone rotation
 

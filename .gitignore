@@ -33,6 +33,7 @@ go.mod
 .idea/tasks.xml
 .idea/dictionaries
 .idea/deploymentTargetDropDown.xml
+.idea/misc.xml
 # Sensitive or high-churn files:
 .idea/dataSources.ids
 .idea/dataSources.xml

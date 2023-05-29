@@ -10,12 +10,12 @@
       android:id="@+id/openFileButton"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_marginTop="200dp"
+      android:layout_marginBottom="125dp"
       android:background="@drawable/button_background"
       android:text="@string/open_file"
+      app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toBottomOf="@+id/mainText" />
+      app:layout_constraintStart_toStartOf="parent" />
   <ImageButton
       android:id="@+id/galleryButton"
       android:layout_width="75dp"
@@ -43,16 +43,15 @@
       tools:visibility="visible" />
   <TextView
       android:id="@+id/mainText"
-      android:layout_width="374dp"
-      android:layout_height="56dp"
-      android:layout_marginBottom="50dp"
+      android:layout_width="0dp"
+      android:layout_height="50dp"
+      android:layout_marginBottom="190dp"
       android:gravity="center"
       android:text="@string/main_text"
       android:textSize="20sp"
-      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintBottom_toTopOf="@+id/openFileButton"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintHorizontal_bias="0.485"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toTopOf="parent" />
+      app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

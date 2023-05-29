@@ -30,7 +30,6 @@ public class ShowAnimation extends AppCompatActivity {
 
         APNGDrawable apngDrawable = APNGDrawable.fromFile(file.getPath());
         handwritingAnimation.setImageDrawable(apngDrawable);
-//        handwritingAnimation.animate();
 
         shareButton.setOnClickListener(view -> {
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
