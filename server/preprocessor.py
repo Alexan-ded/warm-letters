@@ -6,12 +6,10 @@ import cv2
 
 
 class Scanner(object):
-    def __init__(self, interactive=False, min_area_ratio=0.2, max_angle_range=40, min_angle_value=80,
-                 max_angle_value=100):
+    def __init__(self, interactive=False, min_area_ratio=0.2, max_angle_range=40, max_angle_lines=15):
         self.MIN_QUAD_AREA_RATIO = min_area_ratio
         self.MAX_QUAD_ANGLE_RANGE = max_angle_range
-        self.MIN_ANGLE_VALUE = min_angle_value
-        self.MAX_ANGLE_VALUE = max_angle_value
+        self.MAX_LINES_ANGLE = max_angle_lines
 
     def order_points(self, pts):
         x_sort = pts[np.argsort(pts[:, 0]), :]
@@ -86,7 +84,7 @@ class Scanner(object):
         line_detector = cv2.createLineSegmentDetector(0)
         lines = line_detector.detect(img)
         corners = []
-        if lines is not None:
+        if lines[0] is not None:
             horizontal_lines_canvas = np.zeros(img.shape, dtype=np.uint8)
             vertical_lines_canvas = np.zeros(img.shape, dtype=np.uint8)
             for line in lines[0]:
@@ -177,15 +175,16 @@ class Scanner(object):
             return False
         if cv2.contourArea(cnt) <= IM_WIDTH * IM_HEIGHT * self.MIN_QUAD_AREA_RATIO:
             return False
-        # angles = self.angle_range(cnt)
-        # for angle in angles:
-        #     if angle <= self.MIN_ANGLE_VALUE or angle >= self.MAX_ANGLE_VALUE:
-        #         # print(angles)
-        #         # cv2.drawContours(image, [cnt*2], -1, (0, 0, 255), 4)
-        #         # cv2.imshow("Outline", image)
-        #         # cv2.waitKey(0)
-        #         # cv2.destroyAllWindows()
-        #         return False
+        a, b, c, d = self.order_points(cnt.reshape(4, 2))
+        u = b - a
+        v = c - d
+        ang1 = self.angle_between_vectors(u, v)
+        u = d - a
+        v = c - b
+        ang2 = self.angle_between_vectors(u, v)
+        # print(ang1, ang2)
+        if ang1 > self.MAX_LINES_ANGLE or ang2 > self.MAX_LINES_ANGLE:
+            return False
         return True
 
     def get_contour(self, rescaled_image):
@@ -242,7 +241,6 @@ class Scanner(object):
             BOTTOM_LEFT = (0, IM_HEIGHT)
             TOP_LEFT = (0, 0)
             screenCnt = np.array([[TOP_RIGHT], [BOTTOM_RIGHT], [BOTTOM_LEFT], [TOP_LEFT]])
-
         else:
             screenCnt = min(approx_contours, key=self.diagonal_diff)
 
@@ -258,8 +256,8 @@ class Scanner(object):
 
         # get the contour of the document
         paper_contours = self.get_contour(rescaled_gray)
-        transformed = self.four_point_transform(gray, paper_contours * ratio)
 
+        transformed = self.four_point_transform(gray, paper_contours * ratio)
         return transformed
 
 
@@ -302,11 +300,11 @@ def preprocess_img(transformed):  # getting already grayscale
     return dilated
 
 
-# image = cv2.imread("../IMG_3341.jpeg")
-# scanner = Scanner()
-# trans = scanner.scan(image)
-# process = preprocess_img(trans)
-#
-# cv2.imshow("lol", process)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+image = cv2.imread("../alex.jpeg")
+scanner = Scanner()
+trans = scanner.scan(image)
+process = preprocess_img(trans)
+
+cv2.imshow("lol", process)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
