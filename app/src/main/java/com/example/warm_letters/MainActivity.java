@@ -1,6 +1,6 @@
 package com.example.warm_letters;
 
-import android.widget.ImageView;
+import android.widget.Button;
 import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
@@ -14,12 +14,12 @@ import android.os.Environment;
 import android.view.View;
 import android.widget.ImageButton;
 
-import com.github.penfeizhou.animation.apng.APNGDrawable;
 import java.io.File;
 
 import android.util.Log;
 
-import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // Background calculations can mess up the snackbar bruuuuuuuh
@@ -31,24 +31,26 @@ TODO server connection settings
 TODO put colors to colors.xml
 TODO background tasks interruption in onPause
 TODO implement callback when image sent to server instead of using AtomicBool
-TODO package name
 TODO change button pictures
 TODO confirmation window on exit
 TODO camera permission if API < 26 (works on 26, maybe even lower, not 24 tho)
 TODO make minsdk 27 lol
 
-TODO final animation
+TODO back button
+TODO open with button
 
  */
 
 public class MainActivity extends AppCompatActivity {
 
     protected View mainView;
+    protected TextView mainText;
     protected ImageButton cameraButton;
     protected ImageButton galleryButton;
-    protected TextView mainText;
+    protected Button openFileButton;
     protected ActivityResultLauncher<Uri> cameraResultLauncher;
     protected ActivityResultLauncher<PickVisualMediaRequest> photoPickerResultLauncher;
+    protected ActivityResultLauncher<String> filePickerResultLauncher;
     protected Uri photoUri = null;
     protected AtomicBoolean isImageSent = new AtomicBoolean(true);
 
@@ -59,9 +61,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mainView = findViewById(android.R.id.content);
+        mainText = findViewById(R.id.mainText);
         cameraButton = findViewById(R.id.cameraButton);
         galleryButton = findViewById(R.id.galleryButton);
-        mainText = findViewById(R.id.mainText);
+        openFileButton = findViewById(R.id.openFileButton);
 
         cameraButton.setOnClickListener(view -> {
             if (!isImageSent.get()) {
@@ -125,7 +128,34 @@ public class MainActivity extends AppCompatActivity {
                         showSnackBar("No image selected");
                         isImageSent.set(true);
                     }
-                });
+                }
+        );
+
+        openFileButton.setOnClickListener(view -> {
+            // TODO ("application/bebr")
+            filePickerResultLauncher.launch("*/*");
+
+        });
+
+        filePickerResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri == null) {
+                        Log.d("FilePicker", "No file selected");
+                        showSnackBar("No file selected");
+                        return;
+                    }
+                    File mediaStorageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                    File file = new File(mediaStorageDir, "animation_.png");
+                    try {
+                        InputStream inputStream = getContentResolver().openInputStream(uri);
+                        FunctionClass.createFile(this, inputStream, file);
+                    } catch (FileNotFoundException e) {
+                        showSnackBar("Error: File not found");
+                        e.printStackTrace();
+                    }
+                }
+        );
     }
 
     @Override
