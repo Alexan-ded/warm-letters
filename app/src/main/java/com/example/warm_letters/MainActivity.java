@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
         openFileButton.setOnClickListener(view -> {
             // TODO ("application/bebr")
-            filePickerResultLauncher.launch("*/*");
+            filePickerResultLauncher.launch("image/png");
 
         });
 

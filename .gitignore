@@ -20,6 +20,8 @@ tmp/
 captures
 go.mod
 
+app/release
+
 ################
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio
@@ -34,6 +36,9 @@ go.mod
 .idea/dictionaries
 .idea/deploymentTargetDropDown.xml
 .idea/misc.xml
+.idea/libraries
+.idea/modules.xml
+
 # Sensitive or high-churn files:
 .idea/dataSources.ids
 .idea/dataSources.xml

@@ -10,7 +10,7 @@
       android:id="@+id/openFileButton"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_marginBottom="125dp"
+      android:layout_marginBottom="250dp"
       android:background="@drawable/button_background"
       android:text="@string/open_file"
       app:layout_constraintBottom_toBottomOf="parent"
@@ -52,6 +52,18 @@
       app:layout_constraintBottom_toTopOf="@+id/openFileButton"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintHorizontal_bias="0.485"
+      app:layout_constraintStart_toStartOf="parent" />
+  <TextView
+      android:id="@+id/textView2"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="100dp"
+      android:layout_marginStart="10dp"
+      android:layout_marginEnd="10dp"
+      android:text="@string/note"
+      android:textSize="20sp"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

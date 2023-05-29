@@ -300,11 +300,11 @@ def preprocess_img(transformed):  # getting already grayscale
     return dilated
 
 
-image = cv2.imread("../alex.jpeg")
-scanner = Scanner()
-trans = scanner.scan(image)
-process = preprocess_img(trans)
-
-cv2.imshow("lol", process)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# image = cv2.imread("../alex.jpeg")
+# scanner = Scanner()
+# trans = scanner.scan(image)
+# process = preprocess_img(trans)
+# 
+# cv2.imshow("lol", process)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()

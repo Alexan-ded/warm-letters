@@ -1,9 +1,10 @@
 <resources>
-    <string name="app_name">Warm Letters</string>
-    <string name="camera_button">Take a picture</string>
-    <string name="gallery_button">Pick an image from gallery</string>
-    <string name="main_text">Take a picture or choose from gallery:</string>
-    <string name="open_file">Open animation file</string>
-    <string name="handwriting_animation">Handwriting animation</string>
-    <string name="share_button">Share</string>
+  <string name="app_name">Warm Letters</string>
+  <string name="camera_button">Take a picture</string>
+  <string name="gallery_button">Pick an image from gallery</string>
+  <string name="main_text">Take a picture or choose from gallery:</string>
+  <string name="open_file">Open animation file</string>
+  <string name="handwriting_animation">Handwriting animation</string>
+  <string name="share_button">Share</string>
+  <string name="note">Note: Take the photo from above, against a relatively dark background, ensuring that the paper is fully within the frame.</string>
 </resources>
