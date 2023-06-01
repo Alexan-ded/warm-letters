@@ -10,3 +10,5 @@ https://disk.yandex.ru/i/AnflaKD57WOdgg
 2) Соберите приложение в apk файл, установите его на смартфон
 
 3) Запустите server.py
+
+Сборка кодировщика на unix системех - из папки bebr_encoder запустить команду go build -o main.so -buildmode=c-shared .
