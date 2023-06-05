@@ -66,7 +66,7 @@ public class ImageProcess {
                 connection.setRequestProperty("Content-Type", "image/jpeg");
                 connection.setRequestProperty("Content-Length", String.valueOf(imageBytes.length));
                 connection.setConnectTimeout(10_000);
-                connection.setReadTimeout(60_000);
+                connection.setReadTimeout(90_000);
                 OutputStream outputStream = connection.getOutputStream();
                 outputStream.write(imageBytes);
                 outputStream.flush();
@@ -78,7 +78,7 @@ public class ImageProcess {
                             Environment.DIRECTORY_PICTURES);
                     File file = new File(mediaStorageDir, "animation.png");
                     InputStream inputStream = connection.getInputStream();
-                    FunctionClass.createFile(context, inputStream, file);
+                    FunctionClass.showAnimation(context, inputStream, file);
                 } else {
                     Log.e("Response Error", "Failed with response code: " + responseCode);
                     showSnackBar("Error: Wrong response code");

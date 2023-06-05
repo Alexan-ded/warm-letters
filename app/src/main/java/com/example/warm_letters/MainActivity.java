@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
                     File file = new File(mediaStorageDir, "animation_.png");
                     try {
                         InputStream inputStream = getContentResolver().openInputStream(uri);
-                        FunctionClass.createFile(this, inputStream, file);
+                        FunctionClass.showAnimation(this, inputStream, file);
                     } catch (FileNotFoundException e) {
                         showSnackBar("Error: File not found");
                         e.printStackTrace();

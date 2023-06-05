@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class FunctionClass {
-    public static void createFile(Context context, InputStream inputStream, File file) {
+    public static void showAnimation(Context context, InputStream inputStream, File file) {
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(file);
             byte[] buffer = new byte[4096];
@@ -27,7 +27,6 @@ public class FunctionClass {
             context.startActivity(intent);
         } catch (IOException e) {
             e.printStackTrace();
-//            showSnackBar("Error while creating temp file");
         }
     }
     public static void showSnackBar(View view, String message, boolean is_long) {
